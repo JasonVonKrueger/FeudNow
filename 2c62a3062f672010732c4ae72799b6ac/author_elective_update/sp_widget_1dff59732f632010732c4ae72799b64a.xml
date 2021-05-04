@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="DELETE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function($rootScope, $scope, spUtil) {
+	/* widget controller */
+	var c = this;
+	c.user = c.data.user;
+
+	var questions = Object.keys(feudJSON);
+	var answers = Object.values(feudJSON);
+
+	var index = 1;
+
+	c.question = questions[index];	
+
+	// watch for updates to the game data			
+	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(event) {	
+		var ans_element = '#a' + (parseInt(event.data.record.current_answer_index.value) + 1);
+		var pnt_element = '#p' + (parseInt(event.data.record.current_answer_index.value) + 1);
+				
+		$(ans_element).val(event.data.record.current_answer.value);
+		$(pnt_element).val(event.data.record.current_answer_points.value);
+		c.data.round_score = event.data.record.round_score.value;
+	});	
+ 
+
+
+	c.reveal = function(element) {
+		//alert(document.getElementById('ans1').value)
+		c.answer = answers[index][answer][0];
+		c.count = answers[index][answer][1];
+	}
+	
+	
+	c.revealAnswer = function() {
+		c.server.get({
+			action: 'updateRoundScore'
+		}).then(function(response) {
+			
+		})
+	}	
+	
+
+	// answer selected
+	$('.answer').on('click', function(e) {
+		// need to subtract one from the display index for the array
+		var selected_answer_index = $(this).val() - 1;
+		var selected_answer_text = answers[index][selected_answer_index][0];
+		var selected_answer_points = answers[index][selected_answer_index][1];
+
+		// update the score for the round
+		c.server.get({
+			gameID: 'ea7006092f7b2010732c4ae72799b67f',
+			action: 'updateRoundScore',
+			question: questions[index],			
+			answerIndex: selected_answer_index,
+			answer: selected_answer_text,
+			points: selected_answer_points
+		});
+	});
+
+
+	// "Name a toy you always see in pictures of Santa's Workshop":[["Doll",39],["Stuffed Animal",13],["Train",11],["Rocking Horse",9],["Toy Soldier",9],["Drum",4],["Ball",3],["Wagon",3]],
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  width: 100%;
+}	
+
+.grid-container {
+  display: grid;
+  grid-column-gap: 5px;
+  grid-template-columns: auto auto auto;
+  XXbackground-color: #2196F3;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.grid-item {
+  XXbackground-color: rgba(255, 255, 255, 0.8);
+  XXborder: 1px solid rgba(0, 0, 0, 0.8);
+  XXpadding: 20px;
+  font-size: 20px;
+  text-align: center;
+}
+
+	
+.gameboard {
+  min-width: 700px;
+  min-height: 500px;
+  padding: 10px 10px;
+  border: #111 solid;
+  border-width: 14px 10px;
+  background-color: #0642a3;
+}
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
+.column {
+  width: 50%;
+  height: 100%;
+  text-align: center;
+}
+
+.item {
+   margin: 8px 0;   
+}
+
+.gameboard input {
+  border: none;
+  font-size: 30px;
+  color: #f2f2f2;
+  padding: 2px 8px;
+  margin: 0x;
+  background-color: #111;
+  border-radius: 2px;
+  border: 1px solid #ccc;
+}
+
+.gameboard .item input:nth-child(1) {
+  width: 60%;
+}
+.gameboard .item input:nth-child(2) {
+  width: 15%;
+}
+
+.scorebox {
+  padding: 10px;
+  border: 5px solid #ff6666; 
+  border-radius: 50%;
+}
+
+#question {
+  margin-left: auto;
+  margin-right: auto;  
+	width: 100%
+  font-size: 22px;
+  padding: 5px;
+  border: 1px solid #ccc; 
+  background-color: #fff;
+  color: #666;
+}
+
+.total input {
+  width: 50%;
+  margin-right: 5%;
+  float: right;
+}
+
+.answer:hover {
+  cursor: pointer;
+}
+
+.x {
+  position: absolute;
+  left: 24%;
+  width: 10%;
+  text-align: center;
+  font-family: Impact;
+  font-size: 200px;
+  color: red;
+  border: 30px solid red;
+  display: none;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>feudnow2</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>FeudNow2</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+	
+	
+	if (input) {
+		if (input.action == 'updateRoundScore') {					
+			var gr = new GlideRecord('x_159204_feudnow_game');
+			gr.get(input.gameID);
+			
+			var score = gr.round_score + input.points;
+			
+			gr.setValue('current_question', input.question);
+			gr.setValue('current_answer', input.answer);
+			gr.setValue('current_answer_index', input.answerIndex);
+			gr.setValue('current_answer_points', input.points);
+			gr.setValue('round_score', score);
+			gr.updateMultiple();
+			
+		}
+	}	
+	
+	
+  
+	data.user = gs.getUserID();
+	
+	/*
+	function logPlayerEntry() {
+		var gr = new GlideRecord('x_159204_feudnow_players')
+		gr.addQuery('player', gs.getUserID())
+		gr.query()
+		
+		if (!gr.next()) {
+			gr.initialize()
+			gr.player = gs.getUserID()
+			gr.team_number = 1
+			gr.insert()
+		}
+	}
+	*/
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>rpoore_admin</sys_created_by>
+        <sys_created_on>2021-04-23 01:36:59</sys_created_on>
+        <sys_id>1dff59732f632010732c4ae72799b64a</sys_id>
+        <sys_mod_count>350</sys_mod_count>
+        <sys_name>FeudNow2</sys_name>
+        <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
+        <sys_update_name>sp_widget_1dff59732f632010732c4ae72799b64a</sys_update_name>
+        <sys_updated_by>rpoore_admin</sys_updated_by>
+        <sys_updated_on>2021-05-01 17:11:14</sys_updated_on>
+        <template><![CDATA[<!--
+<span class="navbar-avatar">
+<sn-avatar class="avatar-medium" primary="user" show-presence="true" />
+</span>  
+
+<div>
+<img src="https://joeschmoe.io/api/v1/male/random" width="48px" />
+</div>    
+
+-->
+
+<div class="grid-container">
+  <!-- left column -->
+  <div class="grid-item">
+    
+    <div class="grid-item">
+      <span id="team1-score" class="scorebox">34</span>
+    </div>  
+    
+    <!-- avatar -->
+    <div class="grid-item">
+      <sn-avatar class="avatar-large" primary="user" show-presence="true" />
+    </div>  
+
+    <!-- avatar -->
+    <div class="grid-item">
+      5
+    </div> 	
+  </div>
+
+  <!-- middle column -->
+  <div class="grid-item">
+
+    <div class="grid-item">
+      <div id="question">{{c.question}}</div>
+    </div>
+
+    <div class="grid-item">
+      <div class="gameboard">
+  
+        <div class="left column">
+          
+          <div class="item">  
+            <input id="a1" class="answer" value="1" readonly />
+            <input id="p1" readonly />
+          </div>
+          <div class="item">
+            <input id="a2" class="answer" value="2" readonly />
+            <input id="p2" readonly />
+          </div>         
+          <div class="item">
+            <input id="a3" class="answer" value="3" readonly />
+            <input id="p3" readonly />
+          </div>          
+          <div class="item">
+            <input id="a4" class="answer" value="4" readonly />
+            <input id="p4" readonly />
+          </div>          
+          <div class="item">
+            <input id="a5" class="answer" value="5" readonly />
+            <input id="p5" readonly />
+          </div>
+        </div>
+
+        <div class="right column"> 
+          <div class="item">
+            <input id="a6" class="answer" value="6" readonly />
+            <input id="p6" readonly />
+          </div>
+          <div class="item">
+            <input id="a7" class="answer" value="7" readonly />
+            <input id="p7" readonly />
+          </div>
+          <div class="item">
+            <input id="a8" class="answer" value="8" readonly />
+            <input id="p8" readonly />
+          </div>
+          <div class="item">
+            <input id="a9" class="answer" value="9" readonly />
+            <input id="p9" readonly />
+          </div>
+          <div class="item">
+            <input id="a10" class="answer" value="10" readonly />
+            <input id="p10" readonly />
+          </div>
+          <div class="total">
+            <input id="score_total" value="{{c.data.round_score}}"/>
+          </div>
+        </div>
+      </div> 
+    </div>    
+  </div>
+
+  <!-- right column -->
+  <div class="grid-item">
+    
+     <div class="grid-item">
+      <span id="team2-score" class="scorebox">56</span>
+    </div>     
+    
+    <!-- avatar -->
+    <div class="grid-item">
+      <img src="https://joeschmoe.io/api/v1/josh" width="48px" />   
+    </div>  
+
+    <!-- avatar -->
+    <div class="grid-item">7</div> 	
+  </div>  
+  
+  <!-- host view -->
+  <div>
+    
+  </div>
+  
+  <!-- player view -->
+  <div>
+    
+  </div>
+  
+
+</div> 
+
+
+
+
+
+
+
+]]></template>
+    </sp_widget>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</application>
+        <file_path/>
+        <instance_id>dbd8008adb903f000b9d21c405961958</instance_id>
+        <instance_name>dev76398</instance_name>
+        <name>sp_widget_1dff59732f632010732c4ae72799b64a</name>
+        <payload>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;record_update table="sp_widget"&gt;&lt;sp_widget action="INSERT_OR_UPDATE"&gt;&lt;category&gt;custom&lt;/category&gt;&lt;client_script&gt;&lt;![CDATA[api.controller=function($rootScope, $scope, spUtil) {
+	/* widget controller */
+	var c = this;
+	c.user = c.data.user;
+
+	var questions = Object.keys(feudJSON);
+	var answers = Object.values(feudJSON);
+
+	var index = 1;
+
+	c.question = questions[index];	
+
+	// watch for updates to the game data			
+	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(event) {	
+		var ans_element = '#a' + (parseInt(event.data.record.current_answer_index.value) + 1);
+		var pnt_element = '#p' + (parseInt(event.data.record.current_answer_index.value) + 1);
+				
+		$(ans_element).val(event.data.record.current_answer.value);
+		$(pnt_element).val(event.data.record.current_answer_points.value);
+		c.data.round_score = event.data.record.round_score.value;
+	});	
+ 
+
+
+	c.reveal = function(element) {
+		//alert(document.getElementById('ans1').value)
+		c.answer = answers[index][answer][0];
+		c.count = answers[index][answer][1];
+	}
+	
+	
+	c.revealAnswer = function() {
+		c.server.get({
+			action: 'updateRoundScore'
+		}).then(function(response) {
+			
+		})
+	}	
+	
+
+	// answer selected
+	$('.answer').on('click', function(e) {
+		// need to subtract one from the display index for the array
+		var selected_answer_index = $(this).val() - 1;
+		var selected_answer_text = answers[index][selected_answer_index][0];
+		var selected_answer_points = answers[index][selected_answer_index][1];
+
+		// update the score for the round
+		c.server.get({
+			gameID: 'ea7006092f7b2010732c4ae72799b67f',
+			action: 'updateRoundScore',
+			question: questions[index],			
+			answerIndex: selected_answer_index,
+			answer: selected_answer_text,
+			points: selected_answer_points
+		});
+	});
+
+
+	// "Name a toy you always see in pictures of Santa's Workshop":[["Doll",39],["Stuffed Animal",13],["Train",11],["Rocking Horse",9],["Toy Soldier",9],["Drum",4],["Ball",3],["Wagon",3]],
+
+};]]&gt;&lt;/client_script&gt;&lt;controller_as&gt;c&lt;/controller_as&gt;&lt;css&gt;* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  width: 100%;
+}	
+
+.grid-container {
+  display: grid;
+  grid-column-gap: 5px;
+  grid-template-columns: auto auto auto;
+  XXbackground-color: #2196F3;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.grid-item {
+  XXbackground-color: rgba(255, 255, 255, 0.8);
+  XXborder: 1px solid rgba(0, 0, 0, 0.8);
+  XXpadding: 20px;
+  font-size: 20px;
+  text-align: center;
+}
+
+	
+.gameboard {
+  min-width: 700px;
+  min-height: 500px;
+  padding: 10px 10px;
+  border: #111 solid;
+  border-width: 14px 10px;
+  background-color: #0642a3;
+}
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
+.column {
+  width: 50%;
+  height: 100%;
+  text-align: center;
+}
+
+.item {
+   margin: 8px 0;   
+}
+
+.gameboard input {
+  border: none;
+  font-size: 30px;
+  color: #f2f2f2;
+  padding: 2px 8px;
+  margin: 0x;
+  background-color: #111;
+  border-radius: 2px;
+  border: 1px solid #ccc;
+}
+
+.gameboard .item input:nth-child(1) {
+  width: 60%;
+}
+.gameboard .item input:nth-child(2) {
+  width: 15%;
+}
+
+.scorebox {
+  padding: 10px;
+  border: 5px solid #ff6666; 
+  border-radius: 50%;
+}
+
+#question {
+  margin-left: auto;
+  margin-right: auto;  
+	width: 100%
+  font-size: 22px;
+  padding: 5px;
+  border: 1px solid #ccc; 
+  background-color: #fff;
+  color: #666;
+}
+
+.total input {
+  width: 50%;
+  margin-right: 5%;
+  float: right;
+}
+
+.answer:hover {
+  cursor: pointer;
+}
+
+.x {
+  position: absolute;
+  left: 24%;
+  width: 10%;
+  text-align: center;
+  font-family: Impact;
+  font-size: 200px;
+  color: red;
+  border: 30px solid red;
+  display: none;
+}&lt;/css&gt;&lt;data_table&gt;sp_instance&lt;/data_table&gt;&lt;demo_data/&gt;&lt;description/&gt;&lt;docs/&gt;&lt;field_list/&gt;&lt;has_preview&gt;true&lt;/has_preview&gt;&lt;id&gt;feudnow2&lt;/id&gt;&lt;internal&gt;false&lt;/internal&gt;&lt;link&gt;&lt;![CDATA[function link(scope, element, attrs, controller) {  }]]&gt;&lt;/link&gt;&lt;name&gt;FeudNow2&lt;/name&gt;&lt;option_schema/&gt;&lt;public&gt;false&lt;/public&gt;&lt;roles/&gt;&lt;script&gt;&lt;![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+	
+	
+	if (input) {
+		if (input.action == 'updateRoundScore') {					
+			var gr = new GlideRecord('x_159204_feudnow_game');
+			gr.get(input.gameID);
+			
+			var score = gr.round_score + input.points;
+			
+			gr.setValue('current_question', input.question);
+			gr.setValue('current_answer', input.answer);
+			gr.setValue('current_answer_index', input.answerIndex);
+			gr.setValue('current_answer_points', input.points);
+			gr.setValue('round_score', score);
+			gr.updateMultiple();
+			
+		}
+	}	
+	
+	
+  
+	data.user = gs.getUserID();
+	
+	/*
+	function logPlayerEntry() {
+		var gr = new GlideRecord('x_159204_feudnow_players')
+		gr.addQuery('player', gs.getUserID())
+		gr.query()
+		
+		if (!gr.next()) {
+			gr.initialize()
+			gr.player = gs.getUserID()
+			gr.team_number = 1
+			gr.insert()
+		}
+	}
+	*/
+
+})();]]&gt;&lt;/script&gt;&lt;servicenow&gt;false&lt;/servicenow&gt;&lt;sys_class_name&gt;sp_widget&lt;/sys_class_name&gt;&lt;sys_created_by&gt;rpoore_admin&lt;/sys_created_by&gt;&lt;sys_created_on&gt;2021-04-23 01:36:59&lt;/sys_created_on&gt;&lt;sys_id&gt;1dff59732f632010732c4ae72799b64a&lt;/sys_id&gt;&lt;sys_mod_count&gt;350&lt;/sys_mod_count&gt;&lt;sys_name&gt;FeudNow2&lt;/sys_name&gt;&lt;sys_package display_value="FeudNow" source="x_159204_feudnow"&gt;2c62a3062f672010732c4ae72799b6ac&lt;/sys_package&gt;&lt;sys_policy/&gt;&lt;sys_scope display_value="FeudNow"&gt;2c62a3062f672010732c4ae72799b6ac&lt;/sys_scope&gt;&lt;sys_update_name&gt;sp_widget_1dff59732f632010732c4ae72799b64a&lt;/sys_update_name&gt;&lt;sys_updated_by&gt;rpoore_admin&lt;/sys_updated_by&gt;&lt;sys_updated_on&gt;2021-05-01 17:11:14&lt;/sys_updated_on&gt;&lt;template&gt;&lt;![CDATA[&lt;!--
+&lt;span class="navbar-avatar"&gt;
+&lt;sn-avatar class="avatar-medium" primary="user" show-presence="true" /&gt;
+&lt;/span&gt;  
+
+&lt;div&gt;
+&lt;img src="https://joeschmoe.io/api/v1/male/random" width="48px" /&gt;
+&lt;/div&gt;    
+
+--&gt;
+
+&lt;div class="grid-container"&gt;
+  &lt;!-- left column --&gt;
+  &lt;div class="grid-item"&gt;
+    
+    &lt;div class="grid-item"&gt;
+      &lt;span id="team1-score" class="scorebox"&gt;34&lt;/span&gt;
+    &lt;/div&gt;  
+    
+    &lt;!-- avatar --&gt;
+    &lt;div class="grid-item"&gt;
+      &lt;sn-avatar class="avatar-large" primary="user" show-presence="true" /&gt;
+    &lt;/div&gt;  
+
+    &lt;!-- avatar --&gt;
+    &lt;div class="grid-item"&gt;
+      5
+    &lt;/div&gt; 	
+  &lt;/div&gt;
+
+  &lt;!-- middle column --&gt;
+  &lt;div class="grid-item"&gt;
+
+    &lt;div class="grid-item"&gt;
+      &lt;div id="question"&gt;{{c.question}}&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class="grid-item"&gt;
+      &lt;div class="gameboard"&gt;
+  
+        &lt;div class="left column"&gt;
+          
+          &lt;div class="item"&gt;  
+            &lt;input id="a1" class="answer" value="1" readonly /&gt;
+            &lt;input id="p1" readonly /&gt;
+          &lt;/div&gt;
+          &lt;div class="item"&gt;
+            &lt;input id="a2" class="answer" value="2" readonly /&gt;
+            &lt;input id="p2" readonly /&gt;
+          &lt;/div&gt;         
+          &lt;div class="item"&gt;
+            &lt;input id="a3" class="answer" value="3" readonly /&gt;
+            &lt;input id="p3" readonly /&gt;
+          &lt;/div&gt;          
+          &lt;div class="item"&gt;
+            &lt;input id="a4" class="answer" value="4" readonly /&gt;
+            &lt;input id="p4" readonly /&gt;
+          &lt;/div&gt;          
+          &lt;div class="item"&gt;
+            &lt;input id="a5" class="answer" value="5" readonly /&gt;
+            &lt;input id="p5" readonly /&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class="right column"&gt; 
+          &lt;div class="item"&gt;
+            &lt;input id="a6" class="answer" value="6" readonly /&gt;
+            &lt;input id="p6" readonly /&gt;
+          &lt;/div&gt;
+          &lt;div class="item"&gt;
+            &lt;input id="a7" class="answer" value="7" readonly /&gt;
+            &lt;input id="p7" readonly /&gt;
+          &lt;/div&gt;
+          &lt;div class="item"&gt;
+            &lt;input id="a8" class="answer" value="8" readonly /&gt;
+            &lt;input id="p8" readonly /&gt;
+          &lt;/div&gt;
+          &lt;div class="item"&gt;
+            &lt;input id="a9" class="answer" value="9" readonly /&gt;
+            &lt;input id="p9" readonly /&gt;
+          &lt;/div&gt;
+          &lt;div class="item"&gt;
+            &lt;input id="a10" class="answer" value="10" readonly /&gt;
+            &lt;input id="p10" readonly /&gt;
+          &lt;/div&gt;
+          &lt;div class="total"&gt;
+            &lt;input id="score_total" value="{{c.data.round_score}}"/&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt; 
+    &lt;/div&gt;    
+  &lt;/div&gt;
+
+  &lt;!-- right column --&gt;
+  &lt;div class="grid-item"&gt;
+    
+     &lt;div class="grid-item"&gt;
+      &lt;span id="team2-score" class="scorebox"&gt;56&lt;/span&gt;
+    &lt;/div&gt;     
+    
+    &lt;!-- avatar --&gt;
+    &lt;div class="grid-item"&gt;
+      &lt;img src="https://joeschmoe.io/api/v1/josh" width="48px" /&gt;   
+    &lt;/div&gt;  
+
+    &lt;!-- avatar --&gt;
+    &lt;div class="grid-item"&gt;7&lt;/div&gt; 	
+  &lt;/div&gt;  
+  
+  &lt;!-- host view --&gt;
+  &lt;div&gt;
+    
+  &lt;/div&gt;
+  
+  &lt;!-- player view --&gt;
+  &lt;div&gt;
+    
+  &lt;/div&gt;
+  
+
+&lt;/div&gt; 
+
+
+
+
+
+
+
+]]&gt;&lt;/template&gt;&lt;/sp_widget&gt;&lt;/record_update&gt;</payload>
+        <payload_hash>-1979176879</payload_hash>
+        <record_name>FeudNow2</record_name>
+        <reverted_from/>
+        <source>6062a3062f672010732c4ae72799b6af</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>rpoore_admin</sys_created_by>
+        <sys_created_on>2021-05-01 17:11:14</sys_created_on>
+        <sys_id>2882ceae2ffb6010732c4ae72799b67e</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>17928e9b05f0000001</sys_recorded_at>
+        <sys_updated_by>rpoore_admin</sys_updated_by>
+        <sys_updated_on>2021-05-01 17:11:14</sys_updated_on>
+        <type>Widget</type>
+        <update_guid>ec82ceaeb4fb6010ca79f634530df27d</update_guid>
+        <update_guid_history>ec82ceaeb4fb6010ca79f634530df27d:-1979176879,afb186aee1fb6010581a2e29d4baa39d:1686517928,47714aae64fb60109b69b089bb8041cd:848321234,290f79eafcfb6010b8ae8379e2bbd774:116978034,568e7d2a17fb60103ed322badbb14cca:511808938,156ebdaa6dfb60101825cfb6f07d2430:392776615,d97cb12a50fb60103983ff67b9793ed0:-2129658940,0e0c39e631fb601079414c4b5533538f:-180227559,dfdbfde6a5fb6010ae29995dbe7c802e:-1852036496,0b9b7de6acfb6010c88631d6c4e7fcd6:-1456813716,8e4bbd66cefb6010de9fc606e8bb5feb:879616430,ad1b35a67dfb6010e9768bd1ca9a6840:1312611296,4e8af9a6b2fb6010729a54385beab49d:1100880478,eae9f9a2bffb6010eb7fa3c34cd86404:1041596251,9179b9ee82bb6010f942db9ea3275c3f:2078922092,c6c6b9a2eefb6010ca639cb543d9292e:-1494462720,cc467d6247fb6010f11071469bd36686:1466647609,0f067d62c3fb60103b288b85c68e7d7e:243635191,16c539aeeebb60103b420fd8ebec11b4:-416859678,18c439226afb60106b72edbd923fce07:-417245139,5993b56e8dbb60105939353fb65d5eec:700967362,a1e27d6ec4bb6010ba8d5e17ff7835ee:1921154926,e2327d6e83bb6010a743049c3d62af14:-957725927,94d1b56ee5bb6010e3e124ae37b5c92a:-1610380902,7db1356e25bb601021b9708f3db2fd52:745700922,9581f9eafabb6010119885e0b7457223:-1054468094,a971f9aaecbb60100fa9721ec3aa208b:-862715229,3341f9ea7cbb60109140e2759d281ba1:-2140222210,fc21b92ec0bb60109c9dfd4cac843e5e:-462486204,4a30bde6aabb601082414d10e9390612:1968776858,09ce252a03bb6010ba07c801e825c42e:-1023710918,54ed252aecbb6010a8ea1e772b93875f:1300719523,6b1d69e6e3bb6010be39da816cff7628:492570369,cfeca5e28ebb601047df9a5a7eaca69b:-1774335007,e98c25e6d7bb601000ea0db0a7f7bb2a:74773271,688b696674bb601038d6a22b6d9a56f4:-1047307561,b9eae1663ebb6010907ca31a69bacb28:-1174418262,f4ba6966dfbb6010469a32beeff8fd8c:-1942467674,164aa1669cbb6010f6cf340465ac0b47:-141665889,91b9e5e226bb60108fdffe2473ce1123:-1341113804,f698a5e240bb6010c54bb376a655df56:-1064735855,a0d1e12eec7b601026acad81a478acaa:777955248,b6ff992a0e7b60101d902791506b7c11:-798801712,fa4f196af77b6010f10b157091e64f7a:1764071946,654e152a017b60104d5e89d3cd82ed70:1215021904,102e95e6a07b60103bddbe6da962957d:-598580112,22fd15a6977b6010de413fe519161aea:-798801712,7ebd15a6e77b60100c860da7bd6b1738:882813001,44ac99a6647b6010bd3a0e982fae45b7:2126735124,553cd1a6ae7b60106bf2ca4f0eef0f2f:-1346785690,e65a99e2457b6010ae2d5b1865f03ad7:529105445,3235f4f924bb20104617ab10041c2b74:-653942432,8325b4f968bb201028e4118de2b28d3a:1669783552,02a4b0b9d2bb201063b1cfc5afcccf94:1800634816,f779e0fdcd7b20104736321f62dfb453:1811253772,cdc7a47d317b20106160fd0db9caabb5:1950014700,54fd90b1e07b2010c542cf0fe1640918:1133277385,dbdddcb1e67b201054dd12b377c50c13:-118579649,ad9d98b1f67b2010476f03b25b331444:1421705744,347d18b1e07b20108ad5c9174071140a:-1604578480,fb2dd0b1cb7b2010a13ea3794b557d21:1947867976,0a1d50b19e7b2010366236cd38716d71:1895247912,eaec5071a97b20103319519517d3b539:-1523412824,0d1c54fd3a3b2010ac040489dcf7fdf9:1618703285,9abbdcfd3a3b2010b5460ec7595374a2:-112247763,df0b1cbd8a3b2010e3d63537790b120f:778527931,e7aa5039b13b20103c28063c1716399d:-1265101109,d78a10fd893b2010d6945a7c0187e40e:518570598,383a10fdaf3b2010d16076b599f97a05:750104151,80999c39c53b2010a1f0820c4519efaf:1730891983,03535835a73b201070e48420a181edd8:-61188797,dce294f5b03b20106f711fd017e03ce8:-553089928,4962d835883b20109ff5e244aab73163:1036715678,475f08f1c83b2010e94e9e8c33cab50a:583507648,c43f8471a83b2010ebd14c1febcb327c:-28445984,355e84b1763b20104a06e328fc0bb98c:536322880,983ec0b1e73b201038cf72d26b075ef9:1272333472,400e88bd94f720100e0e43f2338c8ee7:-708757109,63bcc831483b201044713f594f54c133:-1011744949,67d9007d37f72010cd4c0b1035150170:912698696,b089047d7bf720104059fd1bf125ccee:643368395,9c39cc3dbdf72010aff86ff4266898c5:737961445,1d3604791df720100829ed6d0a5462b7:-1514892750,90a54cf51af7201037461301f3719913:-1829518811,8015c4f50cf720101298c6231a4cf651:740657640,f8c40cf501f7201085288ca428cbbf87:-1530821994,bf848039fef720104b8d1f9eeca9446c:-447484807,138300f5aff720109198a9f023b181e2:1302150876,07c280b55ef72010c5f155e1be5d34ff:2079164187,a3024c3578f720109a52732991909c89:-873436044,6aa14c35f3f7201034d0d4c9d834af80:1769289258,c7814c3571f720102bb30bb5145d7c55:1489257674,ea3100f10bf720102addb5c476a8a8ec:1583133030,c70100f174f72010d9183e53d35bf1c8:154085773,d6208439e2b72010547cba9f04d03c04:1413022254,bda573e5fab72010aeb11e1a306d2c13:-1670135858,7b85b32972b72010595fb53d21d1282b:1413022254,2075b329e1b720106d41bfacb89b6301:672456334,d7dce6a955732010de0dc04f206f26ee:-592588880,437c2e2d66732010cfabc06b3c9f9c33:-1288736310,b16c26e952732010ac4efb69f5c447db:-2099253347,903ca62d3d732010c598324a8af174d8:-38004893,3acb6aa9c3732010312a1dc7c4323e97:1217606979,dd7b2ea912732010e9ffda44c9066cfd:1167749283,631b2aa912732010978b475e1e997da8:-1643570624,83ea62e9497320101105478178dc373d:-1618367453,b6ca6aa9ad7320109d76a55d4f46ada0:1822149635,3daae229b07320104255ebdd250dd97b:1025005795,697a2e699e7320101ff34cc6f2ff49fc:92532995,043a2265ff732010268fa637af513687:1798350180,15282265df732010d1aa25ba4e1d37d3:-1245102340,161566258473201035d3a2fcd000e5c7:653353205,22b46a25587320101d5dab2b4a8bd7fc:-178842892,8d44a22536732010a0863e9215c43c51:-1857959752,3a83a6e1f6732010f84b983469e59808:-695243541,20526a21ea7320106d1165404f5e6457:358971394,9011e221717320109ac8cbdcbb88fb4f:-867221483,b990eead9a332010c73dd633382f052b:1028304213,a5606221fa73201060e4200fba39c236:-563649598,8dbf1ead8f332010a383a6f9bfa9e13c:1817214019,b85fd6a916332010621299a0d02bd177:-1802658141,ce4fde2d3733201081cf0c48b36a9430:737649347,ccaede6d1f332010cba4e4d91d15cce5:2005660899,8ffbd6e9dc332010277d45bf406e691f:-1802658141,e969d629dc33201024530a434f7627a8:-517047451,6b76d6e195332010ed7e33f2cda14353:556291237,3346126514332010cb440e30f7a0092b:1971257285,e2b62281ae3f20105e0086955f601391:556291237,eac5ae010c3f201060490ec9c839139c:-1766262811,9ea5a201eb3f2010ea64595af1c532e9:1445408687,5585ea01f93f2010d0e8358f7c1b9ea3:1975688367,e6652601fe3f20102f1d6a09ee1d3587:1482461263,d2f4ae4d2bfb2010401093da5c6213f7:1488975695,3513ea4ddefb2010be0baa56145f961b:-1067854668,fdc26a4d20fb2010b93e5bfb35d0a241:1940268116,2482264d6bfb201069c727a6e1691788:-1034745100,9542a6c932fb2010ebe6337cd1d2a64b:-1483746257,a3d16a0d0ffb20102bbde0a80cc35384:710434383,84d0aa45d9fb2010243f847f1605e60b:-1520523185,7050ae89f4fb2010ff57d967e140591d:-389329387,6acdd2093bfb2010e16d3f56d8156ebe:-754523314,9dec16454efb2010725d55c42f0b7a26:-1601079159,c5bb9645cffb20106dbe26210ff19ed3:389873895,227956c1b2fb2010b74167ad210b5e89:-307004969,9dd89a8192fb2010de771ab7622c4889:1162238476,f6981e4d39bb20101a49bfc7cbf2543f:2061852749,52781e41bdfb20109ed1b32679180ad2:1616195031,24081e4188fb201014b71855a600058f:317749814,4cd7964de5bb201030566afb92e339b7:-1505250264,ba06dacdaabb201091cae204309711e7:1955993198,6fb5d64dfbbb2010fd97685ded0fc028:1060672157,38855e0d6fbb201090406321ef9ea33e:-1161624809,8c15564d34bb2010896669d14138af19:-1194964188,e9549e4dc4bb2010aea7d9fb434ce1c3:-206397334,c8c3164dfabb201004d0a3923323a1c9:-590926815,0743520d5cbb20100925addbe8410b92:1717454752,ba13dac913bb20100db7ef5df96e9a98:205988600,3862d2c99fbb2010a77cb69ee27bc963:-905893241,d5425e099bbb2010f5272a9d51c539c0:-1666451568,54129e09e7bb20106e434329d6f4a554:-905893241,4cb1da89d8bb201088779cb255ef392b:2144728205,0d1016498bbb201090bf0ccc2884de61:-644915980,673e8e857dbb2010705883d8d6a666b0:1623470141,141e0e853cbb2010a2d89b94a2214042:-42756700,f40e82854abb2010bd254cddc7f644f9:191153189,23ed0e459ebb201006620f0641b17815:-1154173672,f71dca4577bb2010817cf98325de6acd:1995700409,3edc4a4163bb201042da19bf5c0e8887:804749829,4e49c24161bb2010635d45bcf526a866:1450057651,a2e882cdf27b2010ad9b6cbdf92d6cd1:-474517422,db9882417cbb2010f26b709c48ab488f:377230019,66184a0195bb2010edc39fc4716b8aff:1348490019,a4b682cd147b201084a4d1d60a8b1f72:-777416462,2a26828d237b20107d6555244e4837c5:1146129539,fbb5c64dc07b2010265c8276cf47fe40:761332089,1455820dd87b2010ee82cdc1360c8c44:-1083569794,8bb4424da97b20100b939f7bdf14052b:604499422,6373ca49357b201028cd796f8ce6b2fe:455696900,423382898f7b201039a30190276c815a:1037928208,a4620e09037b2010f65ff142e1cff549:1207475075,d5220e09567b2010be35ad5df8746635:-719619861,9c814649867b20101bc05a5f583d92f2:1935744001,1ac00609f27b20102e3e5861a8e8ee88:422188176,4da0c609e87b20109f4d8266c750bd69:1839164256,e65082094e7b20108af46956a8092e5d:-1390835001,ebea31811e7b2010a63471f3813f26c2:-537777801,612ab1cdf23b2010323098abedb1d186:1666637807,3bb9fdc9573b2010f9c356fa28f2a485:-503540505,9a99798d0a3b2010485c72e29f85de4a:-599423789,2628b1cd9e3b201079d56228ddda985c:184370764,e3a7b98dab3b2010d792d3319adf631b:1903991628,0f97b14d9f3b2010059dae483d8daba7:-1019110324,8677b14d9d3b2010a371dce20964f99a:228773150,1ba6794d3d3b2010a21c08d83615ac09:-917488292,8d76754d5c3b20108d58198587b2e004:1136835842,8b4679c9173b2010da92f8adc4b08ee0:-964346455,d236750d3f3b2010bcc94fc542568a6f:-868084962,1b06b5c9dd3b2010434c9b8830221519:-537341112,e41ba1418e3b2010a1aed4a6eb790654:1048216577,a968694de7f720100c4d87f8941647fd:-829708590,0ce3e54986f72010a9a22f6fa0cfa625:1048216577,3b93e54982f72010744efe0cc3787714:2036997315,2a33ad09d1f720105908b4bc20e75b97:-2019838941,c423adc5ddf720108d524e2baece7855:1130602235,9ab2250938f72010feb2a8e505215df7:1729925600,049221092af72010952c8d2761ba301d:300922967,5952618549f72010f1c47d63214cc4db:-1840206387,2b32adc59ff72010072bacbc6b196631:1726536118,0be12985a6f720102c98e235c40499d7:-415245482,dcd1a5c5eef720101412e08da8e38df5:-559391694,3a8061853ef72010e40a466a275c93d2:-1990187097,42964449b6732010d022237e2232fe6f:979993989,b7764cc16f7320107f4036d0ff5d3171:1581328287,4b354485ec7320108af72a316d480022:1158290297,ade400c591732010dfc84fa356872c62:-1742600187,14a4cc81f57320106bf001a8fd3cd95a:-1241483534,9b5400c5147320102350ab8bdb4cec2b:-340259009,c214c8054e7320100a39552772f89f6f:1508945725,54e3808534732010d75416df0d309327:2058021726,adb34485917320109727e5c5c34b1217:2115469595,be8340851b7320100067cdae0a48abff:593827366,fff24cc14d732010aea71ec1d820c960:1908133648,a432c805ad7320100580d26f24f8c066:1974538131,e8228805057320109ea8af1c5220c224:-1455299195,32e184051d732010ee76c201fdbe8e68:-414555792,de5148cdbf332010dde8a67405dd3422:-1519279284,da018c81117320100068740bb3e75cff:-37286863,02f0c4c1647320109b980bf82cbd6618:-1000097893,30d040c1247320103c019d4d2918e9a3:1752369175,56a040c11a732010f703502e3353cd8f:-548493624,a4800041a1732010174864ae1985c1c9:466958046,a9604c81ee7320107660445622394f17:-120503345,71bebf3035732010d13064b08639c504:-202783466,fd7eb730c073201096b9677480fd023c:853972096,823ef3fc313320108e539a1f8efea0f7:193089050,031eb730e9732010f172459cf9d2ed1e:1346924475,ac5d3bfc8c332010ca8982f33e534bce:673139807,f94ed61444bf2010d053f0f093320cab:239728486,4e3e961495bf20100debf46fea42b4a2:799489446,3efd1ed0e6bf2010aa3cf966759f755a:1775865894,f6ed52140ebf201058db924221053a97:-1085022426,439d92d0b3bf20105ae0576175c6038f:1330075238,ec3d56d072bf2010e174ec79891c2371:-16282140,e10d9e90bcbf201085a16449564a966b:-195086343,96cc925051bf2010a1ff5ba64ce566d7:-1672782222,e0bc5a90acbf20100bc42c5d425df686:2091746270,d48c5a9028bf2010e197f9e21794fb7e:1328297189,7d6cd6908cbf201068c2423b14f7549a:32846159,b91c9650a8bf20100f19dcacc9a58d5f:-1461725164,089b965036bf201085d217b96ac68237:-1481831645,435b925098bf20106bef4e511f2b78bc:343085347,662b925069bf20109d36f0bb34bbe4b4:-353696788,189a5a10b6bf2010829258bd7113c439:445852741,362adedcb37f2010d89a1043baa24394:-111033489,67f9da9ce67f20103e909c2d4b676cce:852654526,47c912dcf17f2010bb52cb7e0554f82c:-32121510,07b996dc0f7f20107ad33eaaba5a9cf3:979468474,0b7996dc437f20103f343f9a3afb04eb:2023896570,ba6956dc3c7f2010eca349c78e2a6cc0:-1076277510,3739de9c617f2010fc0bc94770261efd:-1159396069,41195a5c347f2010162885851b75f05e:-744512485,c2f8569c907f2010d21522211e629689:-427107910,4eb8969c367f20108f07ebb22d4ae4b3:-80114921,1988d65cd57f2010c230cc4272f219f3:498018394,5a68129c2f7f201066cfec5b51658435:-1431500759,0228921cd27f201096406d5ca239f046:842466725,88c75a5c9a7f2010e6e8e38dd9a95548:400868644,1ba7d65cca7f2010724b6321f0d450ea:108375827,32c6161c077f2010379eab959779c1f2:-266792576,c686921c7e7f20105255d2aa45983153:1389684270,0466921cd57f201049b5df614d0f793e:-194239945,b336d2580a7f20103d95a23da81832e0:82800711,b6a5d258827f2010eb1ac3f09fc965c7:-1163974185,687596983d7f2010b2545dac4d0522f9:-1441885718,f6e45a988d7f2010707fcc95922275d0:238544546,36d41a985c7f20104dfd29591ad910fb:1553625071,4fb496985b7f20109b7c21d332e6a5f1:421851935,c8a4d6183e7f2010e06d4cc5061d3bb0:-1919465524,7cf35a58e27f2010d1deaf1edbabb1ac:-1714474345,9a931a186b7f20108d4816afac05e641:788040555,a3b0ab485f73201015f3074ec8a9b8b1:-141422542,60a0a7845e73201016bf7ed7ed98748a:-1489758354,29706b4431732010b9eee012ce9c4b45:-406590098,156a57004e7320100417b4d14c2b2c42:889851894,c8a49f0ca4332010c790525055312a72:1567780346,bc9e313719e32010fe1277c11a59e971:-1692368490,a50ef5f35ee320101b9a23c37f655843:1817971309,e0fd75f3bbe32010efd69c39bd06bfdb:991804910,378d3d3368e320109c17656cc778d325:-1069891007,b94df5b307e32010e27061602a83025e:-941109533,061db1bb82a32010016b43eecc885faf:-901646229,4dccf1336ce320104c79568c4196bfbe:-630600197,331c317fc4a320107365bba76beb1697:960398132,11abb5ff5ca320104756aa6e84e9c154:-1885925888,e42b31ff22a32010428bcff5870db0e5:866756976,559af1ff87a320107e91bafe6939d2bf:834418432,432a71ff04a32010f6bfeebc6ed5431f:1994192201,37f931ff6ca3201006899a8f4f1edcdd:1834156437,aa4975bf92a3201005ee0338a774b328:-151988870,93a835fb43a320101029242611df1eb0:2122841735,c2c779fb62a32010bb8bebfb6803538f:296771847,96a7b93f13a32010b38fa40a64d34d3f:502452528,d5c6b9f3d3a320104e6188cd0dd05f2a:-1342205784,c2a6753baaa32010dbfc8aaedb0d5018:2092905892,ef05bd7bd5a320106354ff67c7ae688e:1296880702,ea83753b8da3201068b3ed07af67310d:-1656972112,adfe69f3caa3201059c7d959b283d790:-1377472989,89ee29f319a32010e4f9bfa4aa02ea63:-1401178230,607e21f3bda320103d274c669fd52adc:1311884040,0adda5b33ba320102cc75c1528159b9a:-1851607193,7dbde9fb9363201068d750af1aecc9e6:1579544246,3f9de973aba32010ba8d82a9ba4a7d14:1918588068,ac8da17332a3201023c89894d5932a0c:1232270736,da4da1737ca32010c3f4d21d19ff8339:1536387405,6e2da573c7a32010cf099753551375bd:-2063528154,65eca57321a3201071e4f2f9b0e6a57d:1068218408,e0ac617343a320101eb3aac6a128a6ea:412664643,b43ca5bfb363201002a2c6b66c9b1c2d:1910765979,a92ca933f5a32010fcaa63880e8c3030:-1863318818,fbfbe533d5a32010d1496d60eb0b9e82:2029554520,31eaedbf2e632010031281c3b9817531:-184502825,d7aae97f856320108d44151b37fdc3df:-1472852150,819aa9bfef6320101b24b04d8df6c74c:1700411588,306aad3ff9632010a755163d6fbf2dfe:-1802016849,733aa9bff1632010cca2dad373204a44:-1025287657,97f9217ffa63201013aceb8107f75231:1054337750,9869e93ffd63201079540f4f134af7b2:-1202038469,5d09a13f2b6320108289d6adc81d1642:-626439950,00f8257f2e6320108cf7408cb7621c39:-520784360,0398ad3f3963201017e7839a04d10ad3:-1775294720,0b68e9fb446320106856f4cc942c92b3:-726531687,f0f7e13f406320109a4a2d957f3d8fb0:1763106826,58976dfb3e63201098cde00855f6cb48:1254807815,a277a97bd4632010a1effca6e96e0ade:-1590982403,56e621fb1d63201046cc8d0589aaffa9:1254807815,f4d6a5bbad632010466cef491f40e58f:-1336227779,5c6629f76b63201027c282aeee61d7ab:1254807815,a3c5e13b4b63201070600113ade4cf8b:1447310669,2e85a97b8463201035826535a4fd1ad3:153893080,b465217b17632010406d175e6a7f5b1f:996890192,c855e13b176320104ccac92b83a78596:1289435927,7b25617b03632010e05eaf5aef859896:1630034197,84a4613bcb6320103995bb8d8e7afb3e:-1988881013,4634e13b77632010517015b154195d82:-420871994,ac14613b8d632010b45e7ee9138b4c0a:1895604261,2ac32df7536320103bdfec4922660413:803108517,3893e5f7216320106448329b1c9cc14f:2112956497,5983e5f70a632010651c5d288886793a:-1353608005,f1c1e5772763201062a834e3265854fd:-1667614392,1a50adb3d6632010c868fd7b6bc6ff6c:-142105050,d5ff59737163201056acade9f2ba584c:-1525772821</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete display_value="FeudNow2">bf129a322fbfa010732c4ae72799b6b6</sys_audit_delete>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>rpoore_admin</sys_created_by>
+        <sys_created_on>2021-05-02 12:57:56</sys_created_on>
+        <sys_db_object display_value="" name="sp_widget">sp_widget</sys_db_object>
+        <sys_id>a923eb44b5a040c89b78ee51d8dd0640</sys_id>
+        <sys_metadata>1dff59732f632010732c4ae72799b64a</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>FeudNow2</sys_name>
+        <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
+        <sys_scope_delete display_value="">07de3eb6afae4e6c8b6ee77f9cfb1964</sys_scope_delete>
+        <sys_update_name>sp_widget_1dff59732f632010732c4ae72799b64a</sys_update_name>
+        <sys_update_version display_value="sp_widget_1dff59732f632010732c4ae72799b64a">2882ceae2ffb6010732c4ae72799b67e</sys_update_version>
+        <sys_updated_by>rpoore_admin</sys_updated_by>
+        <sys_updated_on>2021-05-02 12:57:56</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>

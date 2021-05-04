@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function($rootScope, $scope, spUtil) {
+	/* widget controller */
+	var c = this;
+	c.user = c.data.user;
+
+	var questions = Object.keys(feudJSON);
+	var answers = Object.values(feudJSON);
+
+	var index = 1;
+
+	c.question = questions[index];	
+
+	// watch for updates to the game data			
+	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(event) {	
+		var ans_element = '#a' + (parseInt(event.data.record.current_answer_index.value) + 1);
+		var pnt_element = '#p' + (parseInt(event.data.record.current_answer_index.value) + 1);
+				
+		$(ans_element).val(event.data.record.current_answer.value);
+		$(pnt_element).val(event.data.record.current_answer_points.value);
+		c.data.round_score = event.data.record.round_score.value;
+	});	
+ 
+
+
+	c.reveal = function(element) {
+		//alert(document.getElementById('ans1').value)
+		c.answer = answers[index][answer][0];
+		c.count = answers[index][answer][1];
+	}
+	
+	
+	c.revealAnswer = function() {
+		c.server.get({
+			action: 'updateRoundScore'
+		}).then(function(response) {
+			
+		})
+	}	
+	
+
+	// answer selected
+	$('.answer').on('click', function(e) {
+		// need to subtract one from the display index for the array
+		var selected_answer_index = $(this).val() - 1;
+		var selected_answer_text = answers[index][selected_answer_index][0];
+		var selected_answer_points = answers[index][selected_answer_index][1];
+
+		// update the score for the round
+		c.server.get({
+			gameID: 'ea7006092f7b2010732c4ae72799b67f',
+			action: 'updateRoundScore',
+			question: questions[index],			
+			answerIndex: selected_answer_index,
+			answer: selected_answer_text,
+			points: selected_answer_points
+		});
+	});
+
+
+	// "Name a toy you always see in pictures of Santa's Workshop":[["Doll",39],["Stuffed Animal",13],["Train",11],["Rocking Horse",9],["Toy Soldier",9],["Drum",4],["Ball",3],["Wagon",3]],
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  width: 100%;
+}	
+
+.grid-container {
+  display: grid;
+  grid-column-gap: 5px;
+  grid-template-columns: auto auto auto;
+  XXbackground-color: #2196F3;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.grid-item {
+  XXbackground-color: rgba(255, 255, 255, 0.8);
+  XXborder: 1px solid rgba(0, 0, 0, 0.8);
+  XXpadding: 20px;
+  font-size: 20px;
+  text-align: center;
+}
+
+	
+.gameboard {
+  min-width: 700px;
+  min-height: 500px;
+  padding: 10px 10px;
+  border: #111 solid;
+  border-width: 14px 10px;
+  background-color: #0642a3;
+}
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
+.column {
+  width: 50%;
+  height: 100%;
+  text-align: center;
+}
+
+.item {
+   margin: 8px 0;   
+}
+
+.gameboard input {
+  border: none;
+  font-size: 30px;
+  color: #f2f2f2;
+  padding: 2px 8px;
+  margin: 0x;
+  background-color: #111;
+  border-radius: 2px;
+  border: 1px solid #ccc;
+}
+
+.gameboard .item input:nth-child(1) {
+  width: 60%;
+}
+.gameboard .item input:nth-child(2) {
+  width: 15%;
+}
+
+.scorebox {
+  padding: 10px;
+  border: 5px solid #ff6666; 
+  border-radius: 50%;
+}
+
+#question {
+  margin-left: auto;
+  margin-right: auto;  
+	width: 100%
+  font-size: 22px;
+  padding: 5px;
+  border: 1px solid #ccc; 
+  background-color: #fff;
+  color: #666;
+}
+
+.big-button {
+	padding: 25px;
+  text-align: center;
+  color: white;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 4px solid #000;
+}
+
+.total input {
+  width: 50%;
+  margin-right: 5%;
+  float: right;
+}
+
+.answer:hover {
+  cursor: pointer;
+}
+
+.x {
+  position: absolute;
+  left: 24%;
+  width: 10%;
+  text-align: center;
+  font-family: Impact;
+  font-size: 200px;
+  color: red;
+  border: 30px solid red;
+  display: none;
+}</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>feudnow</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>FeudNow</name>
+        <option_schema>[{"displayValue":"User","name":"game_host","section":"Presentation","label":"Game host","type":"reference","value":"sys_user","ed":{"reference":"sys_user"}}]</option_schema>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+	
+	
+	if (input) {
+		if (input.action == 'updateRoundScore') {					
+			var gr = new GlideRecord('x_159204_feudnow_game');
+			gr.get(input.gameID);
+			
+			var score = gr.round_score + input.points;
+			
+			gr.setValue('current_question', input.question);
+			gr.setValue('current_answer', input.answer);
+			gr.setValue('current_answer_index', input.answerIndex);
+			gr.setValue('current_answer_points', input.points);
+			gr.setValue('round_score', score);
+			gr.updateMultiple();
+			
+		}
+	}	
+	
+	
+  
+	data.user = gs.getUserID();
+	
+	/*
+	function logPlayerEntry() {
+		var gr = new GlideRecord('x_159204_feudnow_players')
+		gr.addQuery('player', gs.getUserID())
+		gr.query()
+		
+		if (!gr.next()) {
+			gr.initialize()
+			gr.player = gs.getUserID()
+			gr.team_number = 1
+			gr.insert()
+		}
+	}
+	*/
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>rpoore_admin</sys_created_by>
+        <sys_created_on>2021-04-18 00:38:34</sys_created_on>
+        <sys_id>cda2abc62f2b2010732c4ae72799b6e7</sys_id>
+        <sys_mod_count>163</sys_mod_count>
+        <sys_name>FeudNow</sys_name>
+        <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
+        <sys_update_name>sp_widget_cda2abc62f2b2010732c4ae72799b6e7</sys_update_name>
+        <sys_updated_by>rpoore_admin</sys_updated_by>
+        <sys_updated_on>2021-05-02 13:19:33</sys_updated_on>
+        <template><![CDATA[<!--
+<span class="navbar-avatar">
+<sn-avatar class="avatar-medium" primary="user" show-presence="true" />
+</span>  
+
+<div>
+<img src="https://joeschmoe.io/api/v1/male/random" width="48px" />
+</div>    
+
+-->
+
+<div class="grid-container">
+  <!-- left column -->
+  <div class="grid-item">
+    
+    <div class="grid-item">
+      <span id="team1-score" class="scorebox">34</span>
+    </div>  
+    
+    <!-- avatar -->
+    <div class="grid-item">
+      <sn-avatar class="avatar-large" primary="user" show-presence="true" />
+    </div>  
+
+    <!-- avatar -->
+    <div class="grid-item">
+      5
+    </div> 	
+  </div>
+
+  <!-- middle column -->
+  <div class="grid-item">
+
+    <div class="grid-item">
+      <div id="question">{{c.question}}</div>
+    </div>
+
+    <div class="grid-item">
+      <div class="gameboard">
+  
+        <div class="left column">
+          
+          <div class="item">  
+            <input id="a1" class="answer" value="1" readonly />
+            <input id="p1" readonly />
+          </div>
+          <div class="item">
+            <input id="a2" class="answer" value="2" readonly />
+            <input id="p2" readonly />
+          </div>         
+          <div class="item">
+            <input id="a3" class="answer" value="3" readonly />
+            <input id="p3" readonly />
+          </div>          
+          <div class="item">
+            <input id="a4" class="answer" value="4" readonly />
+            <input id="p4" readonly />
+          </div>          
+          <div class="item">
+            <input id="a5" class="answer" value="5" readonly />
+            <input id="p5" readonly />
+          </div>
+        </div>
+
+        <div class="right column"> 
+          <div class="item">
+            <input id="a6" class="answer" value="6" readonly />
+            <input id="p6" readonly />
+          </div>
+          <div class="item">
+            <input id="a7" class="answer" value="7" readonly />
+            <input id="p7" readonly />
+          </div>
+          <div class="item">
+            <input id="a8" class="answer" value="8" readonly />
+            <input id="p8" readonly />
+          </div>
+          <div class="item">
+            <input id="a9" class="answer" value="9" readonly />
+            <input id="p9" readonly />
+          </div>
+          <div class="item">
+            <input id="a10" class="answer" value="10" readonly />
+            <input id="p10" readonly />
+          </div>
+          <div class="total">
+            <input id="score_total" value="{{c.data.round_score}}"/>
+          </div>
+        </div>
+      </div> 
+    </div>    
+  </div>
+
+  <!-- right column -->
+  <div class="grid-item">
+    
+     <div class="grid-item">
+      <span id="team2-score" class="scorebox">56</span>
+    </div>     
+    
+    <!-- avatar -->
+    <div class="grid-item">
+      <img src="https://joeschmoe.io/api/v1/josh" width="48px" />   
+    </div>  
+
+    <!-- avatar -->
+    <div class="grid-item">7</div> 	
+  </div>  
+  
+  <!-- host view -->
+  <div>
+    <div class="big-button" style="background-color: green;">Team One</div>
+    <div class="big-button" style="background-color: green;">Team Two</div>
+    <div class="big-button" style="background-color: red; font-size: 30px;">X</div>
+  </div>
+  
+  <!-- player view -->
+  <div>
+    
+  </div>
+  
+
+</div> 
+
+
+
+
+
+
+
+]]></template>
+    </sp_widget>
+</record_update>

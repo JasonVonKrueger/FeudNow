@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update>
+    <sys_documentation element="team_two_players" label="Team Two Players" language="en" table="x_159204_feudnow_game">
+        <sys_documentation action="INSERT_OR_UPDATE">
+            <element>team_two_players</element>
+            <help/>
+            <hint/>
+            <label>Team Two Players</label>
+            <language>en</language>
+            <name>x_159204_feudnow_game</name>
+            <plural>Team Two Players</plural>
+            <sys_class_name>sys_documentation</sys_class_name>
+            <sys_created_by>rpoore_admin</sys_created_by>
+            <sys_created_on>2021-05-04 01:37:36</sys_created_on>
+            <sys_id>65994e532fff2410732c4ae72799b6e3</sys_id>
+            <sys_mod_count>0</sys_mod_count>
+            <sys_name>Team Two Players</sys_name>
+            <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
+            <sys_policy/>
+            <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
+            <sys_update_name>sys_documentation_x_159204_feudnow_game_team_two_players_en</sys_update_name>
+            <sys_updated_by>rpoore_admin</sys_updated_by>
+            <sys_updated_on>2021-05-04 01:37:36</sys_updated_on>
+            <url/>
+            <url_target/>
+        </sys_documentation>
+    </sys_documentation>
+</record_update>
