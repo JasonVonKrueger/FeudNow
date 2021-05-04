@@ -200,12 +200,12 @@ html {
         <script><![CDATA[(function() {
   /* populate the 'data' object */
   /* e.g., data.table = $sp.getValue('table'); */
-	
-	
+		
 	if (input) {
 		if (input.action == 'updateRoundScore') {					
 			var gr = new GlideRecord('x_159204_feudnow_game');
-			gr.get(input.gameID);
+			//gr.get(input.gameID);
+			gr.get($sp.getParameter('game_id'));
 			
 			var score = gr.round_score + input.points;
 			
@@ -244,14 +244,14 @@ html {
         <sys_created_by>rpoore_admin</sys_created_by>
         <sys_created_on>2021-04-18 00:38:34</sys_created_on>
         <sys_id>cda2abc62f2b2010732c4ae72799b6e7</sys_id>
-        <sys_mod_count>163</sys_mod_count>
+        <sys_mod_count>165</sys_mod_count>
         <sys_name>FeudNow</sys_name>
         <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
         <sys_policy/>
         <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
         <sys_update_name>sp_widget_cda2abc62f2b2010732c4ae72799b6e7</sys_update_name>
         <sys_updated_by>rpoore_admin</sys_updated_by>
-        <sys_updated_on>2021-05-02 13:19:33</sys_updated_on>
+        <sys_updated_on>2021-05-04 23:55:57</sys_updated_on>
         <template><![CDATA[<!--
 <span class="navbar-avatar">
 <sn-avatar class="avatar-medium" primary="user" show-presence="true" />

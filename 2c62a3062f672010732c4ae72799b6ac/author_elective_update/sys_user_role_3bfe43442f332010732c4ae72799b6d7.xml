@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_user_role">
+    <sys_user_role action="DELETE">
+        <assignable_by/>
+        <can_delegate>true</can_delegate>
+        <description/>
+        <elevated_privilege>false</elevated_privilege>
+        <grantable>true</grantable>
+        <includes_roles/>
+        <name>x_159204_feudnow.players_user</name>
+        <requires_subscription>-1</requires_subscription>
+        <scoped_admin>false</scoped_admin>
+        <suffix>players_user</suffix>
+        <sys_class_name>sys_user_role</sys_class_name>
+        <sys_created_by>rpoore_admin</sys_created_by>
+        <sys_created_on>2021-04-24 04:20:36</sys_created_on>
+        <sys_id>3bfe43442f332010732c4ae72799b6d7</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>x_159204_feudnow.players_user</sys_name>
+        <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
+        <sys_update_name>sys_user_role_3bfe43442f332010732c4ae72799b6d7</sys_update_name>
+        <sys_updated_by>rpoore_admin</sys_updated_by>
+        <sys_updated_on>2021-04-24 04:20:36</sys_updated_on>
+    </sys_user_role>
+    <sys_update_version action="INSERT_OR_UPDATE">
+        <action>DELETE</action>
+        <application display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</application>
+        <file_path/>
+        <instance_id>dbd8008adb903f000b9d21c405961958</instance_id>
+        <instance_name>dev76398</instance_name>
+        <name>sys_user_role_3bfe43442f332010732c4ae72799b6d7</name>
+        <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_user_role"><sys_user_role action="INSERT_OR_UPDATE"><assignable_by/><can_delegate>true</can_delegate><description/><elevated_privilege>false</elevated_privilege><grantable>true</grantable><includes_roles/><name>x_159204_feudnow.players_user</name><requires_subscription>-1</requires_subscription><scoped_admin>false</scoped_admin><suffix>players_user</suffix><sys_class_name>sys_user_role</sys_class_name><sys_created_by>rpoore_admin</sys_created_by><sys_created_on>2021-04-24 04:20:36</sys_created_on><sys_id>3bfe43442f332010732c4ae72799b6d7</sys_id><sys_mod_count>0</sys_mod_count><sys_name>x_159204_feudnow.players_user</sys_name><sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package><sys_policy/><sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope><sys_update_name>sys_user_role_3bfe43442f332010732c4ae72799b6d7</sys_update_name><sys_updated_by>rpoore_admin</sys_updated_by><sys_updated_on>2021-04-24 04:20:36</sys_updated_on></sys_user_role></record_update>]]></payload>
+        <payload_hash>1061483135</payload_hash>
+        <record_name>x_159204_feudnow.players_user</record_name>
+        <reverted_from/>
+        <source>6062a3062f672010732c4ae72799b6af</source>
+        <source_table>sys_update_set</source_table>
+        <state>previous</state>
+        <sys_created_by>rpoore_admin</sys_created_by>
+        <sys_created_on>2021-04-24 04:20:36</sys_created_on>
+        <sys_id>3bfe83842f332010732c4ae72799b66e</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_recorded_at>179021ba4cf0000001</sys_recorded_at>
+        <sys_updated_by>rpoore_admin</sys_updated_by>
+        <sys_updated_on>2021-04-24 04:20:36</sys_updated_on>
+        <type>Role</type>
+        <update_guid>3ffe434410332010ddfe0c824b18a1dc</update_guid>
+        <update_guid_history>3ffe434410332010ddfe0c824b18a1dc:1061483135</update_guid_history>
+    </sys_update_version>
+    <sys_metadata_delete action="INSERT_OR_UPDATE">
+        <sys_audit_delete display_value="x_159204_feudnow.players_user">b2aa32232f732010732c4ae72799b6e2</sys_audit_delete>
+        <sys_class_name>sys_metadata_delete</sys_class_name>
+        <sys_created_by>rpoore_admin</sys_created_by>
+        <sys_created_on>2021-05-04 23:50:31</sys_created_on>
+        <sys_db_object display_value="" name="sys_user_role">sys_user_role</sys_db_object>
+        <sys_id>27fd5d19bbb84cb89a3c86e036ad5424</sys_id>
+        <sys_metadata>3bfe43442f332010732c4ae72799b6d7</sys_metadata>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>x_159204_feudnow.players_user</sys_name>
+        <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
+        <sys_parent/>
+        <sys_policy/>
+        <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
+        <sys_scope_delete display_value="">07de3eb6afae4e6c8b6ee77f9cfb1964</sys_scope_delete>
+        <sys_update_name>sys_user_role_3bfe43442f332010732c4ae72799b6d7</sys_update_name>
+        <sys_update_version display_value="sys_user_role_3bfe43442f332010732c4ae72799b6d7">3bfe83842f332010732c4ae72799b66e</sys_update_version>
+        <sys_updated_by>rpoore_admin</sys_updated_by>
+        <sys_updated_on>2021-05-04 23:50:31</sys_updated_on>
+    </sys_metadata_delete>
+</record_update>
