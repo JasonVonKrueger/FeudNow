@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
     <sp_widget action="INSERT_OR_UPDATE">
         <category>custom</category>
-        <client_script><![CDATA[api.controller=function($rootScope, $scope, spUtil) {
+        <client_script><![CDATA[api.controller=function($rootScope, $scope, spUtil, spModal) {
 	/* widget controller */
 	var c = this;
 	c.user = c.data.user;
-
+  
+	// for now
+	c.isGameHost = true;
+	
 	var questions = Object.keys(feudJSON);
 	var answers = Object.values(feudJSON);
+	var question_index = null;
+	var used_qestions = [];
 
-	var index = 1;
-
-	c.question = questions[index];	
 
 	// watch for updates to the game data			
 	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(event) {	
@@ -23,13 +25,45 @@
 		c.data.round_score = event.data.record.round_score.value;
 	});	
  
+	
+	// open the question card for the host
+	c.openQuestion = function(element) {
+		question_index = Math.floor(Math.random() * questions.length);	
+		c.question = questions[question_index];
+		c.answer_list = answers[question_index];
+		
+		$('.modal').modal({ backdrop: false, show: true });
+	};	
 
+	$('.modal-header').on('mousedown', function(mousedownEvt) {
+		var $draggable = $(this);
+		var x = mousedownEvt.pageX - $draggable.offset().left,
+				y = mousedownEvt.pageY - $draggable.offset().top;
+		$('body').on('mousemove.draggable', function(mousemoveEvt) {
+			$draggable.closest(".modal-dialog").offset({
+				"left": mousemoveEvt.pageX - x,
+				"top": mousemoveEvt.pageY - y
+			});
+		});
+		$('body').one('mouseup', function() {
+			$("body").off('mousemove.draggable');
+		});
+		$draggable.closest('.modal').one('bs.modal.hide', function() {
+			$('body').off('mousemove.draggable');
+		});
+	});
 
+	
+	
+	
+	
+	
+	/*
 	c.reveal = function(element) {
 		//alert(document.getElementById('ans1').value)
 		c.answer = answers[index][answer][0];
 		c.count = answers[index][answer][1];
-	}
+	};
 	
 	
 	c.revealAnswer = function() {
@@ -37,22 +71,23 @@
 			action: 'updateRoundScore'
 		}).then(function(response) {
 			
-		})
-	}	
+		});
+	};
+	*/
 	
 
 	// answer selected
 	$('.answer').on('click', function(e) {
 		// need to subtract one from the display index for the array
 		var selected_answer_index = $(this).val() - 1;
-		var selected_answer_text = answers[index][selected_answer_index][0];
-		var selected_answer_points = answers[index][selected_answer_index][1];
+		var selected_answer_text = answers[question_index][selected_answer_index][0];
+		var selected_answer_points = answers[question_index][selected_answer_index][1];
 
 		// update the score for the round
 		c.server.get({
 			gameID: 'ea7006092f7b2010732c4ae72799b67f',
 			action: 'updateRoundScore',
-			question: questions[index],			
+			question: questions[question_index],			
 			answerIndex: selected_answer_index,
 			answer: selected_answer_text,
 			points: selected_answer_points
@@ -77,19 +112,14 @@ html {
   display: grid;
   grid-column-gap: 5px;
   grid-template-columns: auto auto auto;
-  XXbackground-color: #2196F3;
   padding: 5px;
   border-radius: 10px;
 }
 
 .grid-item {
-  XXbackground-color: rgba(255, 255, 255, 0.8);
-  XXborder: 1px solid rgba(0, 0, 0, 0.8);
-  XXpadding: 20px;
   font-size: 20px;
   text-align: center;
 }
-
 	
 .gameboard {
   min-width: 700px;
@@ -142,25 +172,46 @@ html {
   border-radius: 50%;
 }
 
-#question {
+.host-grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-gap: 10px;
+  justify-content: space-evenly;
+  width: 100%;
   margin-left: auto;
   margin-right: auto;  
-	width: 100%
-  font-size: 22px;
-  padding: 5px;
-  border: 1px solid #ccc; 
-  background-color: #fff;
-  color: #666;
 }
 
 .big-button {
-	padding: 25px;
+  padding: 25px;
   text-align: center;
   color: white;
   width: 100px;
   height: 100px;
   border-radius: 50%;
   border: 4px solid #000;
+}
+
+.big-button.red {
+  background-color: red; 
+  font-size: 30px;
+}
+
+.big-button.green {
+  background-color: green;
+}
+
+.big-button:hover {
+  cursor: pointer;
+  -webkit-transform: scale(1.2);
+  -ms-transform: scale(1.2);
+  transform: scale(1.2);
+}
+
+#new-question-button {
+  grid-column: 2;
+  grid-row: 2; 
+  justify-content: space-evenly;
 }
 
 .total input {
@@ -183,7 +234,26 @@ html {
   color: red;
   border: 30px solid red;
   display: none;
-}</css>
+}
+
+
+
+#question_card {
+  position: relative;
+}
+
+.modal-header:hover {
+	cursor: move; 
+}
+
+.modal-dialog {
+  position: fixed;
+  margin: 0;
+  padding: 10px;
+}
+
+
+</css>
         <data_table>sp_instance</data_table>
         <demo_data/>
         <description/>
@@ -244,14 +314,14 @@ html {
         <sys_created_by>rpoore_admin</sys_created_by>
         <sys_created_on>2021-04-18 00:38:34</sys_created_on>
         <sys_id>cda2abc62f2b2010732c4ae72799b6e7</sys_id>
-        <sys_mod_count>165</sys_mod_count>
+        <sys_mod_count>267</sys_mod_count>
         <sys_name>FeudNow</sys_name>
         <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
         <sys_policy/>
         <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
         <sys_update_name>sp_widget_cda2abc62f2b2010732c4ae72799b6e7</sys_update_name>
         <sys_updated_by>rpoore_admin</sys_updated_by>
-        <sys_updated_on>2021-05-04 23:55:57</sys_updated_on>
+        <sys_updated_on>2021-05-08 02:14:36</sys_updated_on>
         <template><![CDATA[<!--
 <span class="navbar-avatar">
 <sn-avatar class="avatar-medium" primary="user" show-presence="true" />
@@ -266,11 +336,11 @@ html {
 <div class="grid-container">
   <!-- left column -->
   <div class="grid-item">
-    
+
     <div class="grid-item">
       <span id="team1-score" class="scorebox">34</span>
     </div>  
-    
+
     <!-- avatar -->
     <div class="grid-item">
       <sn-avatar class="avatar-large" primary="user" show-presence="true" />
@@ -286,14 +356,10 @@ html {
   <div class="grid-item">
 
     <div class="grid-item">
-      <div id="question">{{c.question}}</div>
-    </div>
-
-    <div class="grid-item">
       <div class="gameboard">
-  
+
         <div class="left column">
-          
+
           <div class="item">  
             <input id="a1" class="answer" value="1" readonly />
             <input id="p1" readonly />
@@ -347,11 +413,11 @@ html {
 
   <!-- right column -->
   <div class="grid-item">
-    
-     <div class="grid-item">
+
+    <div class="grid-item">
       <span id="team2-score" class="scorebox">56</span>
     </div>     
-    
+
     <!-- avatar -->
     <div class="grid-item">
       <img src="https://joeschmoe.io/api/v1/josh" width="48px" />   
@@ -360,21 +426,54 @@ html {
     <!-- avatar -->
     <div class="grid-item">7</div> 	
   </div>  
-  
-  <!-- host view -->
-  <div>
-    <div class="big-button" style="background-color: green;">Team One</div>
-    <div class="big-button" style="background-color: green;">Team Two</div>
-    <div class="big-button" style="background-color: red; font-size: 30px;">X</div>
-  </div>
-  
-  <!-- player view -->
-  <div>
-    
-  </div>
-  
 
 </div> 
+
+<!-- host view -->
+<div class="host-grid-container" ng-show="c.isGameHost">
+  <div id="new-question-button">
+    <button ng-click="c.openQuestion()" class="btn btn-default">
+      New Question
+    </button>   
+  </div>
+</div>
+
+<!-- Question card -->
+<div id="question_card" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4>{{c.question}}</h4>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li ng-repeat="answer in c.answer_list">{{answer}}</li>
+        </ul>
+      </div>
+
+      <div class="host-grid-container" ng-show="c.isGameHost">
+        <div class="big-button green">Team One</div>
+        <div class="big-button red">X</div>
+        <div class="big-button green">Team Two</div>
+      </div>      
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- player view -->
+<div>
+
+</div>
 
 
 
