@@ -14,6 +14,7 @@
         <element default="0" label="Team One Score" max_length="40" name="team_one_score" read_only="true" type="integer"/>
         <element label="Team Two Players" max_length="4000" name="team_two_players" type="simple_name_values"/>
         <element default="0" label="Team Two Score" max_length="40" name="team_two_score" read_only="true" type="integer"/>
+        <element label="Used question indexes" max_length="2048" name="used_question_indexes" type="string"/>
         <index name="index">
             <element name="host"/>
         </index>

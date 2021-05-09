@@ -12,7 +12,7 @@
 	var questions = Object.keys(feudJSON);
 	var answers = Object.values(feudJSON);
 	var question_index = null;
-	var used_qestions = [];
+	var used_questions = [];
 
 
 	// watch for updates to the game data			
@@ -30,15 +30,28 @@
 	c.openQuestion = function(element) {
 		question_index = Math.floor(Math.random() * questions.length);	
 		c.question = questions[question_index];
+		
+		// track the questions that were aleady asked
+		used_questions.push(question_index);
+		
 		c.answer_list = answers[question_index];
 		
 		$('.modal').modal({ backdrop: false, show: true });
+		
+		// update the used question index on the table
+		c.server.get({
+			gameID: 'ea7006092f7b2010732c4ae72799b67f',
+			action: 'updateUsedQuestionIndexes',	
+			questionIndex: question_index
+		});
+		
 	};	
 
 	$('.modal-header').on('mousedown', function(mousedownEvt) {
 		var $draggable = $(this);
 		var x = mousedownEvt.pageX - $draggable.offset().left,
 				y = mousedownEvt.pageY - $draggable.offset().top;
+		
 		$('body').on('mousemove.draggable', function(mousemoveEvt) {
 			$draggable.closest(".modal-dialog").offset({
 				"left": mousemoveEvt.pageX - x,
@@ -52,48 +65,35 @@
 			$('body').off('mousemove.draggable');
 		});
 	});
-
 	
 	
+	// show big X
+	c.showBigX = function() {
+		$('.big-x-container').show().delay(1000).fadeOut();
+	}
 	
 	
-	
-	/*
-	c.reveal = function(element) {
-		//alert(document.getElementById('ans1').value)
-		c.answer = answers[index][answer][0];
-		c.count = answers[index][answer][1];
-	};
-	
-	
-	c.revealAnswer = function() {
-		c.server.get({
-			action: 'updateRoundScore'
-		}).then(function(response) {
-			
-		});
-	};
-	*/
-	
-
-	// answer selected
-	$('.answer').on('click', function(e) {
-		// need to subtract one from the display index for the array
-		var selected_answer_index = $(this).val() - 1;
+	// display the answer
+	c.revealAnswer = function(index) {
+		var selected_answer_index = index;
 		var selected_answer_text = answers[question_index][selected_answer_index][0];
-		var selected_answer_points = answers[question_index][selected_answer_index][1];
-
+		var selected_answer_points = answers[question_index][selected_answer_index][1];	
+		
 		// update the score for the round
 		c.server.get({
 			gameID: 'ea7006092f7b2010732c4ae72799b67f',
 			action: 'updateRoundScore',
-			question: questions[question_index],			
+			question: questions[question_index],	
 			answerIndex: selected_answer_index,
 			answer: selected_answer_text,
 			points: selected_answer_points
-		});
-	});
-
+		}).then(function() {
+			// remove the selected answer from the answer list
+			$('#answ' + index).hide();
+		})
+		
+	}
+	
 
 	// "Name a toy you always see in pictures of Santa's Workshop":[["Doll",39],["Stuffed Animal",13],["Train",11],["Rocking Horse",9],["Toy Soldier",9],["Drum",4],["Ball",3],["Wagon",3]],
 
@@ -107,6 +107,10 @@ html {
   height: 100%;
   width: 100%;
 }	
+
+a {
+  cursor: pointer;  
+}
 
 .grid-container {
   display: grid;
@@ -182,6 +186,16 @@ html {
   margin-right: auto;  
 }
 
+.host-grid-container-buttons {
+  display: grid;
+  grid-template-columns: auto;
+  grid-gap: 10px;
+  justify-content: space-evenly;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;  
+}
+
 .big-button {
   padding: 25px;
   text-align: center;
@@ -224,19 +238,20 @@ html {
   cursor: pointer;
 }
 
-.x {
-  position: absolute;
-  left: 24%;
-  width: 10%;
-  text-align: center;
-  font-family: Impact;
-  font-size: 200px;
-  color: red;
-  border: 30px solid red;
+.big-x-container {
   display: none;
+  position: absolute;
+  width: 100%;
+  top: 50px;
+  text-align: center;
 }
 
-
+.big-x {
+  text-align: center;
+  font-size: 150px;
+  color: red;
+  border: 15px solid red;
+}
 
 #question_card {
   position: relative;
@@ -268,37 +283,42 @@ html {
         <public>false</public>
         <roles/>
         <script><![CDATA[(function() {
-  /* populate the 'data' object */
-  /* e.g., data.table = $sp.getValue('table'); */
-		
+	/* populate the 'data' object */
+	/* e.g., data.table = $sp.getValue('table'); */
+
 	if (input) {
+		var gr = new GlideRecord('x_159204_feudnow_game');
+		//gr.get($sp.getParameter('game_id'));	
+		gr.get('ea7006092f7b2010732c4ae72799b67f');
+		
 		if (input.action == 'updateRoundScore') {					
-			var gr = new GlideRecord('x_159204_feudnow_game');
-			//gr.get(input.gameID);
-			gr.get($sp.getParameter('game_id'));
-			
 			var score = gr.round_score + input.points;
-			
+
 			gr.setValue('current_question', input.question);
 			gr.setValue('current_answer', input.answer);
 			gr.setValue('current_answer_index', input.answerIndex);
 			gr.setValue('current_answer_points', input.points);
 			gr.setValue('round_score', score);
 			gr.updateMultiple();
-			
 		}
+		else if (input.action == 'updateUsedQuestionIndexes') {
+			var used_question_indexes = gr.used_question_indexes + input.questionIndex + ', ';
+			gr.setValue('used_question_indexes', used_question_indexes);
+			gr.update();
+		}
+
 	}	
-	
-	
-  
+
+
+
 	data.user = gs.getUserID();
-	
+
 	/*
 	function logPlayerEntry() {
 		var gr = new GlideRecord('x_159204_feudnow_players')
 		gr.addQuery('player', gs.getUserID())
 		gr.query()
-		
+
 		if (!gr.next()) {
 			gr.initialize()
 			gr.player = gs.getUserID()
@@ -314,14 +334,14 @@ html {
         <sys_created_by>rpoore_admin</sys_created_by>
         <sys_created_on>2021-04-18 00:38:34</sys_created_on>
         <sys_id>cda2abc62f2b2010732c4ae72799b6e7</sys_id>
-        <sys_mod_count>267</sys_mod_count>
+        <sys_mod_count>398</sys_mod_count>
         <sys_name>FeudNow</sys_name>
         <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
         <sys_policy/>
         <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
         <sys_update_name>sp_widget_cda2abc62f2b2010732c4ae72799b6e7</sys_update_name>
         <sys_updated_by>rpoore_admin</sys_updated_by>
-        <sys_updated_on>2021-05-08 02:14:36</sys_updated_on>
+        <sys_updated_on>2021-05-09 00:31:42</sys_updated_on>
         <template><![CDATA[<!--
 <span class="navbar-avatar">
 <sn-avatar class="avatar-medium" primary="user" show-presence="true" />
@@ -438,8 +458,10 @@ html {
   </div>
 </div>
 
+
+
 <!-- Question card -->
-<div id="question_card" class="modal fade" tabindex="-1" role="dialog">
+<div id="question_card" class="modal fade" tabindex="-1" role="dialog" ng-show="c.isGameHost">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -448,14 +470,16 @@ html {
       </div>
       <div class="modal-body">
         <ul>
-          <li ng-repeat="answer in c.answer_list">{{answer}}</li>
+          <li ng-repeat="answer in c.answer_list" id="{{'answ' + $index}}">
+            <a ng-click="c.revealAnswer($index)">{{answer[0]}}</a>
+          </li>
         </ul>
       </div>
 
-      <div class="host-grid-container" ng-show="c.isGameHost">
-        <div class="big-button green">Team One</div>
-        <div class="big-button red">X</div>
-        <div class="big-button green">Team Two</div>
+      <div class="host-grid-container-buttons">
+        <!--<div class="big-button green">Team One</div>-->
+        <div class="big-button red" ng-click="c.showBigX()">X</div>
+        <!--<div class="big-button green">Team Two</div>-->
       </div>      
 
       <div class="modal-footer">
@@ -467,15 +491,18 @@ html {
 
 
 
-
-
-
 <!-- player view -->
 <div>
 
 </div>
 
 
+<!-- big X -->
+<div class="big-x-container">
+  <span class="big-x">
+    <b>&nbsp;X&nbsp;</b>
+  </span>
+</div>
 
 
 
