@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><database>
-    <element label="Game" max_length="40" name="x_159204_feudnow_game" sizeclass="3" type="collection">
+    <element label="Game" max_length="40" name="x_159204_feudnow_game" sizeclass="2" type="collection">
         <element label="Active" max_length="40" name="active" type="boolean"/>
         <element label="Current Answer" max_length="50" name="current_answer" type="string"/>
         <element label="Current Answer ID" max_length="10" name="current_answer_id" type="string"/>
@@ -15,6 +15,7 @@
         <element label="Team Two Players" max_length="4000" name="team_two_players" type="simple_name_values"/>
         <element default="0" label="Team Two Score" max_length="40" name="team_two_score" read_only="true" type="integer"/>
         <element label="Used question indexes" max_length="2048" name="used_question_indexes" type="string"/>
+        <element default="0" label="Wrong answer count" max_length="40" name="wrong_answer_count" type="integer"/>
         <index name="index">
             <element name="host"/>
         </index>

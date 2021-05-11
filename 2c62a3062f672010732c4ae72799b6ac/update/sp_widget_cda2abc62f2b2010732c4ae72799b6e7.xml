@@ -5,53 +5,95 @@
 	/* widget controller */
 	var c = this;
 	c.user = c.data.user;
-  
+
 	// for now
 	c.isGameHost = true;
-	
+	c.data.team_one_score = 43;
+	c.data.team_two_score = 98;
+	c.data.round_score = 0;
+
 	var questions = Object.keys(feudJSON);
 	var answers = Object.values(feudJSON);
 	var question_index = null;
 	var used_questions = [];
 
 
-	// watch for updates to the game data			
-	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(event) {	
-		var ans_element = '#a' + (parseInt(event.data.record.current_answer_index.value) + 1);
-		var pnt_element = '#p' + (parseInt(event.data.record.current_answer_index.value) + 1);
+	// watch for updates to the game data	
+	function isRefreshNeededForChanges(changes) {
+		var isNeeded = changes.length > 0 && !(
+			changes.length == 1 && (
+				changes[0] == 'wrong_answer_count' || changes[0] == 'current_answer_index'
+			)
+		);
+
+		return isNeeded;
+	}
+
+	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(name) {
+		
+		if (name.data.record.current_answer_index.value) {
+			var ans_element = '#a' + (parseInt(name.data.record.current_answer_index.value) + 1);
+			var pnt_element = '#p' + (parseInt(name.data.record.current_answer_index.value) + 1);
+			$(ans_element).val(name.data.record.current_answer.value);
+			$(pnt_element).val(name.data.record.current_answer_points.value);
+			c.data.round_score = name.data.record.round_score.value;			
+		}
+		
+
+		if (name.data.record.wrong_answer_count.value) {
+			var count = parseInt(name.data.record.wrong_answer_count.value);
+
+			if (count == 1) {
+				$('#x1').show();
+				$('#x2, #x3').hide();
+			}
+			
+			if (count == 2) {
+				$('#x1, #x2').show();
+				$('#x3').hide();
+			}
+			
+			if (count == 3) {
+				$('#x1, #x2, #x3').show();
 				
-		$(ans_element).val(event.data.record.current_answer.value);
-		$(pnt_element).val(event.data.record.current_answer_points.value);
-		c.data.round_score = event.data.record.round_score.value;
+				// show the big green buttons for host
+				$('.big-button.green').css('visibility', 'visible');
+			}			
+
+			$('.big-x-container').show().delay(1000).fadeOut();
+		}
+
+		if (isRefreshNeededForChanges(name.data.changes))
+			$scope.server.update();
+
 	});	
- 
-	
+
+
 	// open the question card for the host
 	c.openQuestion = function(element) {
 		question_index = Math.floor(Math.random() * questions.length);	
 		c.question = questions[question_index];
-		
+
 		// track the questions that were aleady asked
 		used_questions.push(question_index);
-		
+
 		c.answer_list = answers[question_index];
-		
+
 		$('.modal').modal({ backdrop: false, show: true });
-		
+
 		// update the used question index on the table
 		c.server.get({
-			gameID: 'ea7006092f7b2010732c4ae72799b67f',
 			action: 'updateUsedQuestionIndexes',	
 			questionIndex: question_index
 		});
-		
+
 	};	
 
 	$('.modal-header').on('mousedown', function(mousedownEvt) {
 		var $draggable = $(this);
 		var x = mousedownEvt.pageX - $draggable.offset().left,
 				y = mousedownEvt.pageY - $draggable.offset().top;
-		
+
 		$('body').on('mousemove.draggable', function(mousemoveEvt) {
 			$draggable.closest(".modal-dialog").offset({
 				"left": mousemoveEvt.pageX - x,
@@ -65,23 +107,25 @@
 			$('body').off('mousemove.draggable');
 		});
 	});
-	
-	
+
+
 	// show big X
 	c.showBigX = function() {
-		$('.big-x-container').show().delay(1000).fadeOut();
+		// update count of wrong answers
+		c.server.get({
+			action: 'updateWrongAnswerCount'			
+		});
 	}
-	
-	
+
+
 	// display the answer
 	c.revealAnswer = function(index) {
 		var selected_answer_index = index;
 		var selected_answer_text = answers[question_index][selected_answer_index][0];
 		var selected_answer_points = answers[question_index][selected_answer_index][1];	
-		
+
 		// update the score for the round
 		c.server.get({
-			gameID: 'ea7006092f7b2010732c4ae72799b67f',
 			action: 'updateRoundScore',
 			question: questions[question_index],	
 			answerIndex: selected_answer_index,
@@ -91,9 +135,9 @@
 			// remove the selected answer from the answer list
 			$('#answ' + index).hide();
 		})
-		
+
 	}
-	
+
 
 	// "Name a toy you always see in pictures of Santa's Workshop":[["Doll",39],["Stuffed Animal",13],["Train",11],["Rocking Horse",9],["Toy Soldier",9],["Drum",4],["Ball",3],["Wagon",3]],
 
@@ -112,12 +156,27 @@ a {
   cursor: pointer;  
 }
 
+#scores-container {
+  display: grid;
+  grid-column-gap: 10px;
+  grid-template-columns: auto auto auto;
+  width: 80%;
+  padding: 15px;
+  margin-left: auto;
+  margin-right: auto;  
+  border: 2px solid #666; 
+  border-bottom-width: 0px;
+  font-size: 30px;
+  text-align: center;
+}
+
 .grid-container {
   display: grid;
   grid-column-gap: 5px;
   grid-template-columns: auto auto auto;
   padding: 5px;
   border-radius: 10px;
+  Xmargin-top: 100px;
 }
 
 .grid-item {
@@ -170,12 +229,6 @@ a {
   width: 15%;
 }
 
-.scorebox {
-  padding: 10px;
-  border: 5px solid #ff6666; 
-  border-radius: 50%;
-}
-
 .host-grid-container {
   display: grid;
   grid-template-columns: auto auto auto;
@@ -188,7 +241,7 @@ a {
 
 .host-grid-container-buttons {
   display: grid;
-  grid-template-columns: auto;
+  grid-template-columns: auto auto auto;
   grid-gap: 10px;
   justify-content: space-evenly;
   width: 100%;
@@ -212,6 +265,7 @@ a {
 }
 
 .big-button.green {
+  visibility: hidden;
   background-color: green;
 }
 
@@ -285,7 +339,7 @@ a {
         <script><![CDATA[(function() {
 	/* populate the 'data' object */
 	/* e.g., data.table = $sp.getValue('table'); */
-
+	
 	if (input) {
 		var gr = new GlideRecord('x_159204_feudnow_game');
 		//gr.get($sp.getParameter('game_id'));	
@@ -300,12 +354,24 @@ a {
 			gr.setValue('current_answer_points', input.points);
 			gr.setValue('round_score', score);
 			gr.updateMultiple();
-		}
-		else if (input.action == 'updateUsedQuestionIndexes') {
+		}		
+		
+		if (input.action == 'updateUsedQuestionIndexes') {
 			var used_question_indexes = gr.used_question_indexes + input.questionIndex + ', ';
 			gr.setValue('used_question_indexes', used_question_indexes);
 			gr.update();
 		}
+		
+		if (input.action == 'updateWrongAnswerCount') {
+			var count = gr.wrong_answer_count;
+			if (count == 3) 
+				count = 0;
+			
+			count++;
+			
+			gr.setValue('wrong_answer_count', count);
+			gr.update();
+		}		
 
 	}	
 
@@ -334,14 +400,14 @@ a {
         <sys_created_by>rpoore_admin</sys_created_by>
         <sys_created_on>2021-04-18 00:38:34</sys_created_on>
         <sys_id>cda2abc62f2b2010732c4ae72799b6e7</sys_id>
-        <sys_mod_count>398</sys_mod_count>
+        <sys_mod_count>491</sys_mod_count>
         <sys_name>FeudNow</sys_name>
         <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
         <sys_policy/>
         <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
         <sys_update_name>sp_widget_cda2abc62f2b2010732c4ae72799b6e7</sys_update_name>
         <sys_updated_by>rpoore_admin</sys_updated_by>
-        <sys_updated_on>2021-05-09 00:31:42</sys_updated_on>
+        <sys_updated_on>2021-05-11 03:03:01</sys_updated_on>
         <template><![CDATA[<!--
 <span class="navbar-avatar">
 <sn-avatar class="avatar-medium" primary="user" show-presence="true" />
@@ -353,13 +419,18 @@ a {
 
 -->
 
+<div id="scores-container">
+  <div>Team 1</div>
+  <div>Total Points</div>
+  <div>Team 2</div>
+  <div>{{c.data.team_one_score}}</div>
+  <div>{{c.data.round_score}}</div>
+  <div>{{c.data.team_two_score}}</div>  
+</div>
+
 <div class="grid-container">
   <!-- left column -->
   <div class="grid-item">
-
-    <div class="grid-item">
-      <span id="team1-score" class="scorebox">34</span>
-    </div>  
 
     <!-- avatar -->
     <div class="grid-item">
@@ -423,9 +494,6 @@ a {
             <input id="a10" class="answer" value="10" readonly />
             <input id="p10" readonly />
           </div>
-          <div class="total">
-            <input id="score_total" value="{{c.data.round_score}}"/>
-          </div>
         </div>
       </div> 
     </div>    
@@ -433,11 +501,7 @@ a {
 
   <!-- right column -->
   <div class="grid-item">
-
-    <div class="grid-item">
-      <span id="team2-score" class="scorebox">56</span>
-    </div>     
-
+ 
     <!-- avatar -->
     <div class="grid-item">
       <img src="https://joeschmoe.io/api/v1/josh" width="48px" />   
@@ -477,9 +541,9 @@ a {
       </div>
 
       <div class="host-grid-container-buttons">
-        <!--<div class="big-button green">Team One</div>-->
+      <div class="big-button green">Team One</div>
         <div class="big-button red" ng-click="c.showBigX()">X</div>
-        <!--<div class="big-button green">Team Two</div>-->
+        <div class="big-button green">Team Two</div>
       </div>      
 
       <div class="modal-footer">
@@ -499,9 +563,9 @@ a {
 
 <!-- big X -->
 <div class="big-x-container">
-  <span class="big-x">
-    <b>&nbsp;X&nbsp;</b>
-  </span>
+  <span id="x1" class="big-x"><b>&nbsp;X&nbsp;</b></span>
+  <span id="x2" class="big-x"><b>&nbsp;X&nbsp;</b></span>
+  <span id="x3" class="big-x"><b>&nbsp;X&nbsp;</b></span>
 </div>
 
 
