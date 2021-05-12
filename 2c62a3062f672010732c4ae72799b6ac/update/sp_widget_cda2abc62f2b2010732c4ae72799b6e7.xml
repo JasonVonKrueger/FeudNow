@@ -16,7 +16,9 @@
 	var answers = Object.values(feudJSON);
 	var question_index = null;
 	var used_questions = [];
-
+	
+	c.team_one_players = c.data.team_one_players;
+	c.team_two_players = c.data.team_two_players;
 
 	// watch for updates to the game data	
 	function isRefreshNeededForChanges(changes) {
@@ -375,24 +377,33 @@ a {
 
 	}	
 
+	function getTeamPlayers(team) {
+		var players = [];
+		var team_length = 0;
+		
+		var grGame = new GlideRecord('x_159204_feudnow_game');
+		grGame.get('ea7006092f7b2010732c4ae72799b67f');
+		
+		// loop through game players
+		for (var player in grGame[team]) { 
+			var grUser = new GlideRecord('sys_user');
+			grUser.get(grGame[team][player]);
+			
+			var o = {};
+			o.name = grUser.name.toString();
+			o.pic = '/' + grUser.photo.toString() + '.iix';		
+			
+			players.push(o);
+		}
+	
+		return players;
+	}
 
-
+	data.team_one_players = getTeamPlayers('team_one_players'); 
+	data.team_two_players = getTeamPlayers('team_two_players'); 
+	
 	data.user = gs.getUserID();
 
-	/*
-	function logPlayerEntry() {
-		var gr = new GlideRecord('x_159204_feudnow_players')
-		gr.addQuery('player', gs.getUserID())
-		gr.query()
-
-		if (!gr.next()) {
-			gr.initialize()
-			gr.player = gs.getUserID()
-			gr.team_number = 1
-			gr.insert()
-		}
-	}
-	*/
 
 })();]]></script>
         <servicenow>false</servicenow>
@@ -400,14 +411,14 @@ a {
         <sys_created_by>rpoore_admin</sys_created_by>
         <sys_created_on>2021-04-18 00:38:34</sys_created_on>
         <sys_id>cda2abc62f2b2010732c4ae72799b6e7</sys_id>
-        <sys_mod_count>491</sys_mod_count>
+        <sys_mod_count>504</sys_mod_count>
         <sys_name>FeudNow</sys_name>
         <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
         <sys_policy/>
         <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
         <sys_update_name>sp_widget_cda2abc62f2b2010732c4ae72799b6e7</sys_update_name>
         <sys_updated_by>rpoore_admin</sys_updated_by>
-        <sys_updated_on>2021-05-11 03:03:01</sys_updated_on>
+        <sys_updated_on>2021-05-12 03:46:19</sys_updated_on>
         <template><![CDATA[<!--
 <span class="navbar-avatar">
 <sn-avatar class="avatar-medium" primary="user" show-presence="true" />
@@ -432,15 +443,11 @@ a {
   <!-- left column -->
   <div class="grid-item">
 
-    <!-- avatar -->
-    <div class="grid-item">
-      <sn-avatar class="avatar-large" primary="user" show-presence="true" />
+    <!-- team one avatars -->
+    <div class="grid-item" ng-repeat="users in c.team_one_players" >
+      <img src="{{users.pic}}" width="48px" title="{{users.name}}"/>
     </div>  
-
-    <!-- avatar -->
-    <div class="grid-item">
-      5
-    </div> 	
+	
   </div>
 
   <!-- middle column -->
@@ -502,13 +509,11 @@ a {
   <!-- right column -->
   <div class="grid-item">
  
-    <!-- avatar -->
-    <div class="grid-item">
-      <img src="https://joeschmoe.io/api/v1/josh" width="48px" />   
+    <!-- team two avatars -->
+    <div class="grid-item" ng-repeat="users in c.team_two_players" >
+      <img src="{{users.pic}}" width="48px" title="{{users.name}}"/>
     </div>  
 
-    <!-- avatar -->
-    <div class="grid-item">7</div> 	
   </div>  
 
 </div> 
