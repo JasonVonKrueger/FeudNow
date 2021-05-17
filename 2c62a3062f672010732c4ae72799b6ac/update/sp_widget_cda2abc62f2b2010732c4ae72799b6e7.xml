@@ -6,20 +6,22 @@
 	var c = this;
 	c.user = c.data.user;
 
-	// for now
-	c.isGameHost = true;
-	c.data.team_one_score = 43;
-	c.data.team_two_score = 98;
+	// set game host
+	c.isGameHost = c.data.isGameHost;
+	
+	c.team_one_players = c.data.team_one_players;
+	c.team_two_players = c.data.team_two_players;	
+
+	c.data.team_one_score = 0;
+	c.data.team_two_score = 0;
 	c.data.round_score = 0;
 
 	var questions = Object.keys(feudJSON);
 	var answers = Object.values(feudJSON);
-	var question_index = null;
+	var question_index = 0;
 	var used_questions = [];
-	
-	c.team_one_players = c.data.team_one_players;
-	c.team_two_players = c.data.team_two_players;
 
+	/*
 	// watch for updates to the game data	
 	function isRefreshNeededForChanges(changes) {
 		var isNeeded = changes.length > 0 && !(
@@ -30,57 +32,94 @@
 
 		return isNeeded;
 	}
+	*/
 
 	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(name) {
-		
-		if (name.data.record.current_answer_index.value) {
-			var ans_element = '#a' + (parseInt(name.data.record.current_answer_index.value) + 1);
-			var pnt_element = '#p' + (parseInt(name.data.record.current_answer_index.value) + 1);
-			$(ans_element).val(name.data.record.current_answer.value);
-			$(pnt_element).val(name.data.record.current_answer_points.value);
-			c.data.round_score = name.data.record.round_score.value;			
-		}
-		
-
-		if (name.data.record.wrong_answer_count.value) {
-			var count = parseInt(name.data.record.wrong_answer_count.value);
-
-			if (count == 1) {
-				$('#x1').show();
-				$('#x2, #x3').hide();
-			}
+		if (name.data.operation == 'update') {
 			
-			if (count == 2) {
-				$('#x1, #x2').show();
-				$('#x3').hide();
+			/*
+			// wrong answer button pushed
+			if (name.data.changes[0] == 'wrong_answer_count') {
+				var count = parseInt(name.data.record.wrong_answer_count.value);
+
+				if (count == 1) {
+					$('#x1').show();
+					$('#x2, #x3').hide();
+				}
+
+				if (count == 2) {
+					$('#x1, #x2').show();
+					$('#x3').hide();
+				}
+
+				if (count == 3) {
+					$('#x1, #x2, #x3').show();
+
+					// show the big green buttons for host
+					$('.big-button.green').css('visibility', 'visible');
+				}			
+
+				$('.big-x-container').show().delay(1000).fadeOut();
 			}
+			*/
 			
-			if (count == 3) {
-				$('#x1, #x2, #x3').show();
-				
-				// show the big green buttons for host
-				$('.big-button.green').css('visibility', 'visible');
+			/*
+			// let the points be awarded to the appropriate team
+			if (name.data.changes[0] == 'team_one_score') {
+				c.data.team_one_score = name.data.record.team_one_score.value;
+				c.data.round_score = 0;
+			}
+			else if (name.data.changes[0] == 'team_two_score') {
+				c.data.team_two_score = name.data.record.team_two_score.value;
+				c.data.round_score = 0;
+			}
+			*/
+
+			// reveal answer on the board
+			if (name.data.record.current_answer_index.value) {
+				var ans_element = '#a' + (parseInt(name.data.record.current_answer_index.value) + 1);
+				var pnt_element = '#p' + (parseInt(name.data.record.current_answer_index.value) + 1);
+				$(ans_element).val(name.data.record.current_answer.value);
+				$(pnt_element).val(name.data.record.current_answer_points.value);
+				c.data.round_score = name.data.record.round_score.value;			
 			}			
 
-			$('.big-x-container').show().delay(1000).fadeOut();
+			c.server.refresh();
 		}
 
-		if (isRefreshNeededForChanges(name.data.changes))
-			$scope.server.update();
+
+		//if (isRefreshNeededForChanges(name.data.changes))
+		//	$scope.server.update();
+
 
 	});	
 
 
 	// open the question card for the host
 	c.openQuestion = function(element) {
+		// reset wrong answer count
+		c.server.get({ action: 'resetWrongAnswerCount'});
+		
 		question_index = Math.floor(Math.random() * questions.length);	
 		c.question = questions[question_index];
+		c.answers_length = questions[question_index].length;
 
 		// track the questions that were aleady asked
 		used_questions.push(question_index);
 
-		c.answer_list = answers[question_index];
+		// some of the questions have more than 8 answers so we need to truncate the rest
+		c.answers_list = (c.answers_length > 8) ? answers[question_index].slice(0,7) : answers[question_index];
 
+		// clear and show the numbers on the answer blocks
+		for (var i=1; i<=8; i++) {
+			if (i <= c.answers_list.length)
+				$('#a' + i).val(i);
+			else
+				$('#a' + i).val('');
+			
+			$('#p' + i).val('');
+		}
+		
 		$('.modal').modal({ backdrop: false, show: true });
 
 		// update the used question index on the table
@@ -102,23 +141,31 @@
 				"top": mousemoveEvt.pageY - y
 			});
 		});
+		
 		$('body').one('mouseup', function() {
-			$("body").off('mousemove.draggable');
+			$('body').off('mousemove.draggable');
 		});
+		
 		$draggable.closest('.modal').one('bs.modal.hide', function() {
 			$('body').off('mousemove.draggable');
 		});
 	});
 
+	// award points to the winner of the process
+	c.awardPoints = function(team_number) {
+		c.server.get({ 
+			action: 'updateTeamPoints',
+			team: team_number,
+			points: c.data.round_score
+		})
+		
+	}
 
 	// show big X
 	c.showBigX = function() {
 		// update count of wrong answers
-		c.server.get({
-			action: 'updateWrongAnswerCount'			
-		});
+		c.server.get({ action: 'updateWrongAnswerCount'	});
 	}
-
 
 	// display the answer
 	c.revealAnswer = function(index) {
@@ -136,6 +183,11 @@
 		}).then(function() {
 			// remove the selected answer from the answer list
 			$('#answ' + index).hide();
+			/*
+			c.answer_list = c.answer_list.filter(function(item) {
+				return item[0] !== selected_answer_text;
+			})
+			*/
 		})
 
 	}
@@ -311,6 +363,7 @@ a {
 
 #question_card {
   position: relative;
+  top: -500px;
 }
 
 .modal-header:hover {
@@ -342,10 +395,18 @@ a {
 	/* populate the 'data' object */
 	/* e.g., data.table = $sp.getValue('table'); */
 	
+	//var game_id = $sp.getParameter('game_id');
+	var game_id = 'ea7006092f7b2010732c4ae72799b67f';
+	
+	data.isGameHost = isGameHost(gs.getUserID());
+	data.team_one_players = getTeamPlayers('team_one_players'); 
+	data.team_two_players = getTeamPlayers('team_two_players'); 
+	data.user = gs.getUserID();	
+	
+	// is this a client request
 	if (input) {
 		var gr = new GlideRecord('x_159204_feudnow_game');
-		//gr.get($sp.getParameter('game_id'));	
-		gr.get('ea7006092f7b2010732c4ae72799b67f');
+		gr.get(game_id);	
 		
 		if (input.action == 'updateRoundScore') {					
 			var score = gr.round_score + input.points;
@@ -373,7 +434,17 @@ a {
 			
 			gr.setValue('wrong_answer_count', count);
 			gr.update();
-		}		
+		}
+		
+		if (input.action == 'resetWrongAnswerCount') {
+			gr.setValue('wrong_answer_count', 0);
+			gr.update();
+		}
+		
+		if (input.action == 'updateTeamPoints') {
+			gr[input.team] = parseInt(input.points);
+			gr.update();
+		}
 
 	}	
 
@@ -382,7 +453,7 @@ a {
 		var team_length = 0;
 		
 		var grGame = new GlideRecord('x_159204_feudnow_game');
-		grGame.get('ea7006092f7b2010732c4ae72799b67f');
+		grGame.get(game_id);	
 		
 		// loop through game players
 		for (var player in grGame[team]) { 
@@ -398,27 +469,32 @@ a {
 	
 		return players;
 	}
-
-	data.team_one_players = getTeamPlayers('team_one_players'); 
-	data.team_two_players = getTeamPlayers('team_two_players'); 
 	
-	data.user = gs.getUserID();
+	function isGameHost(user) {
+		var gr = new GlideRecord('x_159204_feudnow_game');
+		gr.get(game_id);	
 
-
+		if (gr.host == user) {
+			return true;
+		}
+		
+		return false;		
+	}
+	
 })();]]></script>
         <servicenow>false</servicenow>
         <sys_class_name>sp_widget</sys_class_name>
         <sys_created_by>rpoore_admin</sys_created_by>
         <sys_created_on>2021-04-18 00:38:34</sys_created_on>
         <sys_id>cda2abc62f2b2010732c4ae72799b6e7</sys_id>
-        <sys_mod_count>504</sys_mod_count>
+        <sys_mod_count>576</sys_mod_count>
         <sys_name>FeudNow</sys_name>
         <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
         <sys_policy/>
         <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
         <sys_update_name>sp_widget_cda2abc62f2b2010732c4ae72799b6e7</sys_update_name>
         <sys_updated_by>rpoore_admin</sys_updated_by>
-        <sys_updated_on>2021-05-12 03:46:19</sys_updated_on>
+        <sys_updated_on>2021-05-17 02:59:39</sys_updated_on>
         <template><![CDATA[<!--
 <span class="navbar-avatar">
 <sn-avatar class="avatar-medium" primary="user" show-presence="true" />
@@ -430,6 +506,7 @@ a {
 
 -->
 
+<!--
 <div id="scores-container">
   <div>Team 1</div>
   <div>Total Points</div>
@@ -438,6 +515,7 @@ a {
   <div>{{c.data.round_score}}</div>
   <div>{{c.data.team_two_score}}</div>  
 </div>
+-->
 
 <div class="grid-container">
   <!-- left column -->
@@ -459,47 +537,39 @@ a {
         <div class="left column">
 
           <div class="item">  
-            <input id="a1" class="answer" value="1" readonly />
+            <input id="a1" class="answer" readonly />
             <input id="p1" readonly />
           </div>
           <div class="item">
-            <input id="a2" class="answer" value="2" readonly />
+            <input id="a2" class="answer" readonly />
             <input id="p2" readonly />
           </div>         
           <div class="item">
-            <input id="a3" class="answer" value="3" readonly />
+            <input id="a3" class="answer" readonly />
             <input id="p3" readonly />
           </div>          
           <div class="item">
-            <input id="a4" class="answer" value="4" readonly />
+            <input id="a4" class="answer" readonly />
             <input id="p4" readonly />
           </div>          
-          <div class="item">
-            <input id="a5" class="answer" value="5" readonly />
-            <input id="p5" readonly />
-          </div>
         </div>
 
         <div class="right column"> 
           <div class="item">
-            <input id="a6" class="answer" value="6" readonly />
+            <input id="a5" class="answer" readonly />
+            <input id="p5" readonly />
+          </div>
+          <div class="item">
+            <input id="a6" class="answer" readonly />
             <input id="p6" readonly />
           </div>
           <div class="item">
-            <input id="a7" class="answer" value="7" readonly />
+            <input id="a7" class="answer" readonly />
             <input id="p7" readonly />
           </div>
           <div class="item">
-            <input id="a8" class="answer" value="8" readonly />
+            <input id="a8" class="answer" readonly />
             <input id="p8" readonly />
-          </div>
-          <div class="item">
-            <input id="a9" class="answer" value="9" readonly />
-            <input id="p9" readonly />
-          </div>
-          <div class="item">
-            <input id="a10" class="answer" value="10" readonly />
-            <input id="p10" readonly />
           </div>
         </div>
       </div> 
@@ -539,16 +609,16 @@ a {
       </div>
       <div class="modal-body">
         <ul>
-          <li ng-repeat="answer in c.answer_list" id="{{'answ' + $index}}">
+          <li ng-repeat="answer in c.answers_list" id="{{'answ' + $index}}">
             <a ng-click="c.revealAnswer($index)">{{answer[0]}}</a>
           </li>
         </ul>
       </div>
 
       <div class="host-grid-container-buttons">
-      <div class="big-button green">Team One</div>
+      <div class="big-button green" ng-click="c.awardPoints('team_one_score')">Team One</div>
         <div class="big-button red" ng-click="c.showBigX()">X</div>
-        <div class="big-button green">Team Two</div>
+        <div class="big-button green" ng-click="c.awardPoints('team_two_score')">Team Two</div>
       </div>      
 
       <div class="modal-footer">
