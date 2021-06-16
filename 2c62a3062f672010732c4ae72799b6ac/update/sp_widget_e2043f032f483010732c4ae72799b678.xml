@@ -4,23 +4,9 @@
         <client_script><![CDATA[api.controller=function($scope, spUtil) {
 	/* widget controller */
 	var c = this;
-
-	// set initial scores
-	switch (c.options.team) {
-		case 0:
-			c.team_score = 0;
-			break;
-		case 1:
-			c.team_score = 0;
-			break;
-		case 2:
-			c.team_score = 0;
-			break;
-	}
-
-
+	
 	// watch for changes to the game
-	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(name) {
+	spUtil.recordWatch($scope, "x_159204_feudnow_game", "active=true", function(name) {	
 		if (name.data.operation == 'update') {
 
 			// wrong answer
@@ -47,17 +33,40 @@
 
 					$('.big-x-container').show().delay(1000).fadeOut();					
 				}
-
-
+			}	
+			
+			// for the coin toss to see who goes first
+			if (name.data.record.current_team.value) { 
+				if (name.data.record.current_team.value == 'Team 1') {
+					$('#fn-scorebox-team-one').addClass('active-team');
+					$('#fn-scorebox-team-two').removeClass('active-team');					
+				}
+				else {
+					$('#fn-scorebox-team-two').addClass('active-team');
+					$('#fn-scorebox-team-one').removeClass('active-team');					
+				}				
 			}						
 
-			// update the scores
+			/*
+			// update team one score
+			if (name.data.record.team_one_score.value) {
+				//$('#fn-scorebox-team-one').text(name.data.record.team_one_score.value);
+			}
+			
+			
+			// update team two score
+			if (name.data.record.team_two_score.value) {
+				//$('#fn-scorebox-team-two').text(name.data.record.team_two_score.value);			
+			}
+			
+			
+			// update round score
 			if (name.data.record.current_answer_index.value) {
-				if (c.options.team == 0)
-					c.team_score = name.data.record.round_score.value;			
-			}			
+				//$('#fn-scorebox-round-score').text(ame.data.record.round_score.value);		
+			}	
+			*/
 
-			c.server.refresh();
+			//c.server.refresh();
 		}	
 
 	});
@@ -73,25 +82,29 @@
 }
 
 .scorebox-header {
-	text-align: center; 
+  text-align: center; 
   font-size: 2.5em;
 }
 
 .scorebox-score {
-	text-align: center; 
+  text-align: center; 
   font-size: 2.5em;
+}
+
+.active-team {
+  border-top: 3px solid green; 
 }</css>
         <data_table>sp_instance</data_table>
         <demo_data/>
         <description/>
         <docs/>
         <field_list/>
-        <has_preview>false</has_preview>
+        <has_preview>true</has_preview>
         <id>fn-scorebox</id>
         <internal>false</internal>
         <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
         <name>fn-scorebox</name>
-        <option_schema>[{"name":"title","section":"other","label":"Title","type":"string"},{"name":"team","section":"other","label":"Team","type":"integer"}]</option_schema>
+        <option_schema>[{"name":"title","section":"other","label":"Title","type":"string"},{"name":"team","section":"other","label":"Team","type":"integer"},{"name":"widgetid","section":"other","label":"widgetID","type":"string"}]</option_schema>
         <public>false</public>
         <roles/>
         <script><![CDATA[(function() {  /* populate the 'data' object */  /* e.g., data.table = $sp.getValue('table'); */})();]]></script>
@@ -100,23 +113,22 @@
         <sys_created_by>rpoore_admin</sys_created_by>
         <sys_created_on>2021-05-16 00:59:55</sys_created_on>
         <sys_id>e2043f032f483010732c4ae72799b678</sys_id>
-        <sys_mod_count>28</sys_mod_count>
+        <sys_mod_count>98</sys_mod_count>
         <sys_name>fn-scorebox</sys_name>
         <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
         <sys_policy/>
         <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
         <sys_update_name>sp_widget_e2043f032f483010732c4ae72799b678</sys_update_name>
         <sys_updated_by>rpoore_admin</sys_updated_by>
-        <sys_updated_on>2021-05-17 02:56:11</sys_updated_on>
+        <sys_updated_on>2021-06-15 01:41:57</sys_updated_on>
         <template><![CDATA[<div>
+  
   <div class="scorebox">
     <div class="scorebox-header">
-		{{c.options.title}}
+			{{c.options.title}}
     </div>
     
-    <div class="scorebox-score">
-      {{c.team_score}}
-    </div>
+    <div id="{{c.options.widgetid}}" class="scorebox-score"></div>
     
   </div>
 </div>]]></template>

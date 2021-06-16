@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function() {
+	var c = this;
+	var current_team = '';
+
+	$('#coin').on('click', function() {
+		var flipResult = Math.random();
+		$('#coin').removeClass();
+
+		setTimeout(function(){
+			if (flipResult <= 0.5) {
+				current_team = 'Team 1';
+				$('#coin').addClass('heads');
+			}
+			else {
+				current_team = 'Team 2';
+				$('#coin').addClass('tails');
+			}
+
+			c.server.get({ action: 'setActiveTeam', activeTeam: current_team });
+		}, 100);
+	});	
+
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css>
+#coin {
+  position: relative;
+  margin: 0 auto;
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+  text-align: center;
+  transition: -webkit-transform 1s ease-in;
+  -webkit-transform-style: preserve-3d;  
+}
+
+#coin div {
+  width: 100%;
+  height: 100%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%; 
+  position: absolute;
+  -webkit-backface-visibility: hidden;  
+}
+
+.side-a {
+  background-color: silver;
+  z-index: 100;
+  border: 3px solid gray;
+}
+
+.side-b {
+  background-color: silver;
+  -webkit-transform: rotateY(-180deg); 
+  border: 3px solid gray;
+}
+
+#coin.heads {
+  -webkit-animation: flipHeads 3s ease-out forwards;
+  -moz-animation: flipHeads 3s ease-out forwards;
+  -o-animation: flipHeads 3s ease-out forwards;
+  animation: flipHeads 3s ease-out forwards;
+}
+
+#coin.tails {
+  -webkit-animation: flipTails 3s ease-out forwards;
+  -moz-animation: flipTails 3s ease-out forwards;
+  -o-animation: flipTails 3s ease-out forwards;
+  animation: flipTails 3s ease-out forwards;
+}
+
+@-webkit-keyframes flipHeads {
+  from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
+  to { -webkit-transform: rotateY(1800deg); -moz-transform: rotateY(1800deg); transform: rotateY(1800deg); }
+}
+
+@-webkit-keyframes flipTails {
+  from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
+  to { -webkit-transform: rotateY(1980deg); -moz-transform: rotateY(1980deg); transform: rotateY(1980deg); }
+}
+
+</css>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>fn-coin-flip</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>fn-coin-flip</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+	//var game_id = $sp.getParameter('game_id');
+	var game_id = 'ea7006092f7b2010732c4ae72799b67f';
+	
+	if (input && input.action == 'setActiveTeam') {
+		var gr = new GlideRecord('x_159204_feudnow_game');
+		gr.get(game_id);
+		
+		gr.current_team = input.activeTeam;
+		gr.update();
+	}
+
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>rpoore_admin</sys_created_by>
+        <sys_created_on>2021-06-13 20:15:35</sys_created_on>
+        <sys_id>0c19c0282f703010732c4ae72799b62e</sys_id>
+        <sys_mod_count>45</sys_mod_count>
+        <sys_name>fn-coin-flip</sys_name>
+        <sys_package display_value="FeudNow" source="x_159204_feudnow">2c62a3062f672010732c4ae72799b6ac</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="FeudNow">2c62a3062f672010732c4ae72799b6ac</sys_scope>
+        <sys_update_name>sp_widget_0c19c0282f703010732c4ae72799b62e</sys_update_name>
+        <sys_updated_by>rpoore_admin</sys_updated_by>
+        <sys_updated_on>2021-06-15 01:17:42</sys_updated_on>
+        <template><![CDATA[<div>
+  <div id="coin">
+    <div class="side-a">
+      <div style="position: absolute; top: 35px; color: #fff; font-size: 1.2em;">
+        Team 1
+      </div>
+    </div>
+    <div class="side-b">
+       <div style="position: absolute; top: 35px; color: #fff; font-size: 1.2em;">
+        Team 2
+      </div>   
+    </div>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>
